@@ -2,7 +2,8 @@
 class Event_ServerMacro extends AbstractEvent_Server {
 	const ID = 'event.macro.server';
 	
-	function __construct() {
+	function __construct($manifest) {
+		parent::__construct($manifest);
 		$this->_event_id = self::ID;
 	}
 	

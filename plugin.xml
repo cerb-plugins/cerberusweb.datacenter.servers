@@ -79,12 +79,14 @@
 				<name>Context_Server</name>
 			</class>
 			<params>
+				<param key="alias" value="server" />
 				<param key="view_class" value="View_Server" />
 				<param key="options">
 					<value>
 						<!--<data key="create" />-->
 						<data key="find" />
 						<data key="snippets" />
+						<data key="va_variable" />
 						<data key="workspace" />
 					</value>
 				</param>
@@ -101,6 +103,7 @@
 				<name>Event_ServerMacro</name>
 			</class>
 			<params>
+				<param key="macro_context" value="cerberusweb.contexts.datacenter.server" />
 				<param key="contexts">
 					<value>
 						<data key="cerberusweb.contexts.worker" />
