@@ -75,6 +75,10 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 				'label' => 'Server',
 				'context' => CerberusContexts::CONTEXT_SERVER,
 			),
+			'server_watchers' => array(
+				'label' => 'Server watchers',
+				'context' => CerberusContexts::CONTEXT_WORKER,
+			),
 		);
 		
 		$vars = parent::getValuesContexts($trigger);

@@ -78,6 +78,10 @@ class Context_Server extends Extension_DevblocksContext {
 					}
 				}
 			}
+			
+			// Watchers
+			$watchers = CerberusContexts::getWatchers('cerberusweb.contexts.datacenter.server', $server->id, true);
+			$token_values['watchers'] = $watchers;
 		}
 		
 		// Addy
