@@ -71,7 +71,7 @@ class Page_Datacenter extends CerberusPageExtension {
 				$tpl->assign('selected_tab', $selected_tab);
 					
 				$tab_manifests = DevblocksPlatform::getExtensions(Extension_ServerTab::POINT, false);
-				uasort($tab_manifests, create_function('$a, $b', "return strcasecmp(\$a->name,\$b->name);\n"));
+				DevblocksPlatform::sortObjects($tab_manifests, 'name');
 				$tpl->assign('tab_manifests', $tab_manifests);
 				
 				// Custom fields
@@ -119,7 +119,7 @@ class Page_Datacenter extends CerberusPageExtension {
 				$tpl->assign('selected_tab', $selected_tab);
 				
 				$tab_manifests = DevblocksPlatform::getExtensions(Extension_DatacenterTab::POINT, false);
-				uasort($tab_manifests, create_function('$a, $b', "return strcasecmp(\$a->name,\$b->name);\n"));
+				DevblocksPlatform::sortObjects($tab_manifests, 'name');
 				$tpl->assign('tab_manifests', $tab_manifests);
 				
 				$tpl->display('devblocks:cerberusweb.datacenter::datacenter/index.tpl');
@@ -192,7 +192,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		
 		$view = C4_AbstractViewLoader::getView('datacenter_servers', $defaults);
 		
-        $visit->set('quick_search_type', $type);
+        $visit->set('servers_quick_search_type', $type);
         
         $params = array();
         
