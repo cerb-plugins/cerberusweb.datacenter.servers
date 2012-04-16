@@ -93,11 +93,13 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 		$labels = $this->getLabels();
 		
 		$labels['server_link'] = 'Server is linked';
+		$labels['server_watcher_count'] = 'Server watcher count';
 		
 		$types = array(
 			'server_name' => Model_CustomField::TYPE_SINGLE_LINE,
 			
 			'server_link' => null,
+			'server_watcher_count' => null,
 		);
 
 		$conditions = $this->_importLabelsTypesAsConditions($labels, $types);
@@ -117,6 +119,10 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 				$contexts = Extension_DevblocksContext::getAll(false);
 				$tpl->assign('contexts', $contexts);
 				$tpl->display('devblocks:cerberusweb.core::events/condition_link.tpl');
+				break;
+				
+			case 'server_watcher_count':
+				$tpl->display('devblocks:cerberusweb.core::internal/decisions/conditions/_number.tpl');
 				break;
 		}
 
@@ -170,6 +176,26 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 					$pass = false;
 				}
 				
+				break;
+				
+			case 'server_watcher_count':
+				$not = (substr($params['oper'],0,1) == '!');
+				$oper = ltrim($params['oper'],'!');
+				$value = count($dict->server_watchers);
+				
+				switch($oper) {
+					case 'is':
+						$pass = intval($value)==intval($params['value']);
+						break;
+					case 'gt':
+						$pass = intval($value) > intval($params['value']);
+						break;
+					case 'lt':
+						$pass = intval($value) < intval($params['value']);
+						break;
+				}
+				
+				$pass = ($not) ? !$pass : $pass;
 				break;
 				
 			default:
