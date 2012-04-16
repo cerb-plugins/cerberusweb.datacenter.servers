@@ -78,7 +78,7 @@ class Context_Server extends Extension_DevblocksContext {
 			$labels = array();
 			CerberusContexts::getContext($context, $context_id, $labels, $values);
 		}
-		
+
 		switch($token) {
 			case 'watchers':
 				$watchers = array(
@@ -164,6 +164,10 @@ class DAO_Server extends C4_ORMHelper {
 	
 	static function update($ids, $fields) {
 		parent::_update($ids, 'server', $fields);
+		
+	    // Log the context update
+   		DevblocksPlatform::markContextChanged(CerberusContexts::CONTEXT_SERVER, $ids);
+		
 		self::clearCache();
 	}
 	
