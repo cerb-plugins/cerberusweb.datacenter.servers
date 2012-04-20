@@ -1,5 +1,5 @@
 <?php
-class Context_Server extends Extension_DevblocksContext {
+class Context_Server extends Extension_DevblocksContext implements IDevblocksContextPeek {
 	function getRandom() {
 		return DAO_Server::random();
 	}
@@ -111,7 +111,7 @@ class Context_Server extends Extension_DevblocksContext {
 		$view->renderSortBy = SearchFields_Server::NAME;
 		$view->renderSortAsc = true;
 		$view->renderLimit = 10;
-		$view->renderFilters = true;
+		$view->renderFilters = false;
 		$view->renderTemplate = 'contextlinks_chooser';
 		
 		C4_AbstractViewLoader::setView($view_id, $view);
@@ -141,6 +141,40 @@ class Context_Server extends Extension_DevblocksContext {
 		$view->renderTemplate = 'context';
 		C4_AbstractViewLoader::setView($view_id, $view);
 		return $view;
+	}
+	
+	function renderPeekPopup($context_id=0, $view_id='') {
+		$id = $context_id; // [TODO] Cleanup
+		
+		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl->assign('view_id', $view_id);
+		
+		// Model
+		$model = null;
+		if(empty($id) || null == ($model = DAO_Server::get($id)))
+			$model = new Model_Server();
+		
+		$tpl->assign('model', $model);
+		
+		// Custom fields
+		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server'); 
+		$tpl->assign('custom_fields', $custom_fields);
+
+		$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.datacenter.server', $id);
+		if(isset($custom_field_values[$id]))
+			$tpl->assign('custom_field_values', $custom_field_values[$id]);
+		
+		$types = Model_CustomField::getTypes();
+		$tpl->assign('types', $types);
+		
+		// Comments
+		$comments = DAO_Comment::getByContext('cerberusweb.contexts.datacenter.server', $id);
+		$last_comment = array_shift($comments);
+		unset($comments);
+		$tpl->assign('last_comment', $last_comment);
+		
+		// Render
+		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/peek.tpl');
 	}
 };
 
@@ -460,9 +494,9 @@ class SearchFields_Server implements IDevblocksSearchFields {
 		
 		$columns = array(
 			self::ID => new DevblocksSearchField(self::ID, 'server', 'id', $translate->_('common.id')),
-			self::NAME => new DevblocksSearchField(self::NAME, 'server', 'name', $translate->_('common.name')),
+			self::NAME => new DevblocksSearchField(self::NAME, 'server', 'name', $translate->_('common.name'), Model_CustomField::TYPE_SINGLE_LINE),
 			
-			self::VIRTUAL_WATCHERS => new DevblocksSearchField(self::VIRTUAL_WATCHERS, '*', 'workers', $translate->_('common.watchers')),
+			self::VIRTUAL_WATCHERS => new DevblocksSearchField(self::VIRTUAL_WATCHERS, '*', 'workers', $translate->_('common.watchers'), 'WS'),
 			
 			self::CONTEXT_LINK => new DevblocksSearchField(self::CONTEXT_LINK, 'context_link', 'from_context', null),
 			self::CONTEXT_LINK_ID => new DevblocksSearchField(self::CONTEXT_LINK_ID, 'context_link', 'from_context_id', null),
@@ -470,7 +504,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 		
 		$tables = DevblocksPlatform::getDatabaseTables();
 		if(isset($tables['fulltext_comment_content'])) {
-			$columns[self::FULLTEXT_COMMENT_CONTENT] = new DevblocksSearchField(self::FULLTEXT_COMMENT_CONTENT, 'ftcc', 'content', $translate->_('comment.filters.content'));
+			$columns[self::FULLTEXT_COMMENT_CONTENT] = new DevblocksSearchField(self::FULLTEXT_COMMENT_CONTENT, 'ftcc', 'content', $translate->_('comment.filters.content'), 'FT');
 		}
 		
 		// Custom Fields
@@ -479,7 +513,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 		if(is_array($fields))
 		foreach($fields as $field_id => $field) {
 			$key = 'cf_'.$field_id;
-			$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name);
+			$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name,$field->type);
 		}
 		
 		// Sort by label (translation-conscious)

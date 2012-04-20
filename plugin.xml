@@ -83,7 +83,7 @@
 				<param key="view_class" value="View_Server" />
 				<param key="options">
 					<value>
-						<!--<data key="create" />-->
+						<data key="create" />
 						<data key="find" />
 						<data key="snippets" />
 						<data key="va_variable" />
@@ -124,24 +124,10 @@
 			</class>
 			<params>
 				<param key="uri" value="datacenter" />
-				<param key="menutitle" value="cerberusweb.datacenter.common.datacenter" />
+				<param key="menutitle" value="" />
 			</params>
 		</extension>
 
-		<!-- Datacenter Tabs -->
-		
-		<extension point="cerberusweb.datacenter.tab">
-			<id>cerberusweb.datacenter.tab.servers</id>
-			<name>Servers Tab</name>
-			<class>
-				<file>api/App.php</file>
-				<name>DatacenterServersTab</name>
-			</class>
-			<params>
-				<param key="uri" value="servers" />
-    			<param key="title" value="cerberusweb.datacenter.common.servers" />
-			</params>
-		</extension>
 
     </extensions> 
 </plugin>

@@ -1,12 +1,10 @@
 {$page_context = 'cerberusweb.contexts.datacenter.server'}
 {$page_context_id = $server->id}
 
-{include file="devblocks:cerberusweb.datacenter::datacenter/servers/display/submenu.tpl"}
-
-<h2>{'cerberusweb.datacenter.common.server'|devblocks_translate|capitalize}</h2>
+<h1>{$server->name}</h1>
 
 <fieldset class="properties">
-	<legend>{$server->name|truncate:128}</legend>
+	<legend>{'cerberusweb.datacenter.common.server'|devblocks_translate|capitalize}</legend>
 	
 	<form action="{devblocks_url}{/devblocks_url}" method="post" style="margin-bottom:5px;">
 
@@ -88,7 +86,7 @@
 		var tabs = $("#datacenterServerTabs").tabs( { selected:{$selected_tab_idx} } );
 		
 		$('#btnDatacenterServerEdit').bind('click', function() {
-			$popup = genericAjaxPopup('peek','c=datacenter&a=showServerPeek&id={$page_context_id}',null,false,'550');
+			$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'550');
 			$popup.one('datacenter_server_save', function(event) {
 				event.stopPropagation();
 				document.location.href = '{devblocks_url}c=datacenter&a=server&id={$page_context_id}{/devblocks_url}';

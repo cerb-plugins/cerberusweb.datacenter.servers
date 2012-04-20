@@ -1,42 +1,9 @@
 <?php
-abstract class Extension_DatacenterTab extends DevblocksExtension {
-	const POINT = 'cerberusweb.datacenter.tab';
-	
-	function showTab() {}
-	function saveTab() {}
-};
-
 abstract class Extension_ServerTab extends DevblocksExtension {
 	const POINT = 'cerberusweb.datacenter.server.tab';
 	
 	function showTab(Model_Server $server) {}
 	function saveTab() {}
-};
-
-class DatacenterServersTab extends Extension_DatacenterTab {
-	function showTab() {
-		$tpl = DevblocksPlatform::getTemplateService();
-		
-		// View
-		$view_id = 'datacenter_servers';
-		
-		$defaults = new C4_AbstractViewModel();
-		$defaults->id = $view_id;
-		$defaults->class_name = 'View_Server';
-		
-		$view = C4_AbstractViewLoader::getView($view_id, $defaults);
-		$view->id = $view_id;
-		$view->name = 'Servers';
-		$tpl->assign('view', $view);
-		
-		C4_AbstractViewLoader::setView($view_id, $view);
-		
-		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/tab.tpl');
-	}
-	
-	function saveTab() {
-		
-	}
 };
 
 class Page_Datacenter extends CerberusPageExtension {
@@ -110,56 +77,10 @@ class Page_Datacenter extends CerberusPageExtension {
 				
 				$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/display/index.tpl');
 				break;
-				
-			default:
-				// Remember the last tab/URL
-				if(null == ($selected_tab = @$response->path[1])) {
-					$selected_tab = $visit->get(Extension_DatacenterTab::POINT, '');
-				}
-				$tpl->assign('selected_tab', $selected_tab);
-				
-				$tab_manifests = DevblocksPlatform::getExtensions(Extension_DatacenterTab::POINT, false);
-				DevblocksPlatform::sortObjects($tab_manifests, 'name');
-				$tpl->assign('tab_manifests', $tab_manifests);
-				
-				$tpl->display('devblocks:cerberusweb.datacenter::datacenter/index.tpl');
-				break;
 		}
 		
 	}
 	
-	// Ajax
-	function showTabAction() {
-		@$ext_id = DevblocksPlatform::importGPC($_REQUEST['ext_id'],'string','');
-		
-		$visit = CerberusApplication::getVisit();
-		
-		if(null != ($tab_mft = DevblocksPlatform::getExtension($ext_id)) 
-			&& null != ($inst = $tab_mft->createInstance()) 
-			&& $inst instanceof Extension_DatacenterTab) {
-				$visit->set(Extension_DatacenterTab::POINT, $inst->manifest->params['uri']);
-				$inst->showTab();
-		}
-	}
-	
-	/*
-	 * Proxy any func requests to be handled by the tab directly, 
-	 * instead of forcing tabs to implement controllers.  This should check 
-	 * for the *Action() functions just as a handleRequest would
-	 */
-	function handleTabActionAction() {
-		@$tab = DevblocksPlatform::importGPC($_REQUEST['tab'],'string','');
-		@$action = DevblocksPlatform::importGPC($_REQUEST['action'],'string','');
-
-		if(null != ($tab_mft = DevblocksPlatform::getExtension($tab)) 
-			&& null != ($inst = $tab_mft->createInstance()) 
-			&& $inst instanceof Extension_DatacenterTab) {
-				if(method_exists($inst,$action.'Action')) {
-					call_user_func(array(&$inst, $action.'Action'));
-				}
-		}
-	}	
-		
 	// Ajax
 	function showServerTabAction() {
 		@$ext_id = DevblocksPlatform::importGPC($_REQUEST['ext_id'],'string','');
@@ -175,84 +96,6 @@ class Page_Datacenter extends CerberusPageExtension {
 				$inst->showTab($server);
 		}
 	}	
-	
-	// Post	
-	function doServerQuickSearchAction() {
-        @$type = DevblocksPlatform::importGPC($_POST['type'],'string'); 
-        @$query = DevblocksPlatform::importGPC($_POST['query'],'string');
-
-        $query = trim($query);
-        
-        $visit = CerberusApplication::getVisit(); /* @var $visit CerberusVisit */
-		$active_worker = CerberusApplication::getActiveWorker();
-		
-		$defaults = new C4_AbstractViewModel();
-		$defaults->id = 'datacenter_servers';
-		$defaults->class_name = 'View_Server';
-		
-		$view = C4_AbstractViewLoader::getView('datacenter_servers', $defaults);
-		
-        $visit->set('servers_quick_search_type', $type);
-        
-        $params = array();
-        
-        switch($type) {
-            case "name":
-		        if($query && false===strpos($query,'*'))
-		            $query = $query . '*';
-                $params[SearchFields_Server::NAME] = new DevblocksSearchCriteria(SearchFields_Server::NAME,DevblocksSearchCriteria::OPER_LIKE,strtolower($query));               
-                break;
-            case "comments_all":
-            	$params[SearchFields_Server::FULLTEXT_COMMENT_CONTENT] = new DevblocksSearchCriteria(SearchFields_Server::FULLTEXT_COMMENT_CONTENT,DevblocksSearchCriteria::OPER_FULLTEXT,array($query,'all'));               
-                break;
-                
-            case "comments_phrase":
-            	$params[SearchFields_Server::FULLTEXT_COMMENT_CONTENT] = new DevblocksSearchCriteria(SearchFields_Server::FULLTEXT_COMMENT_CONTENT,DevblocksSearchCriteria::OPER_FULLTEXT,array($query,'phrase'));               
-                break;
-        }
-        
-        $view->addParams($params, true);
-        $view->renderPage = 0;
-        
-        C4_AbstractViewLoader::setView($view->id, $view);
-        
-        DevblocksPlatform::redirect(new DevblocksHttpResponse(array('datacenter','servers')));
-	}	
-	
-	function showServerPeekAction() {
-		@$id = DevblocksPlatform::importGPC($_REQUEST['id'],'integer',0);
-		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string','');
-		
-		$tpl = DevblocksPlatform::getTemplateService();
-		$tpl->assign('view_id', $view_id);
-		
-		// Model
-		$model = null;
-		if(empty($id) || null == ($model = DAO_Server::get($id)))
-			$model = new Model_Server();
-		
-		$tpl->assign('model', $model);
-		
-		// Custom fields
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server'); 
-		$tpl->assign('custom_fields', $custom_fields);
-
-		$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.datacenter.server', $id);
-		if(isset($custom_field_values[$id]))
-			$tpl->assign('custom_field_values', $custom_field_values[$id]);
-		
-		$types = Model_CustomField::getTypes();
-		$tpl->assign('types', $types);
-		
-		// Comments
-		$comments = DAO_Comment::getByContext('cerberusweb.contexts.datacenter.server', $id);
-		$last_comment = array_shift($comments);
-		unset($comments);
-		$tpl->assign('last_comment', $last_comment);
-		
-		// Render
-		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/peek.tpl');
-	}
 	
 	function saveServerPeekAction() {
 		$active_worker = CerberusApplication::getActiveWorker();

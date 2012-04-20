@@ -66,7 +66,7 @@
 			<td colspan="{$smarty.foreach.headers.total}">
 				<input type="checkbox" name="row_id[]" value="{$result.s_id}" style="display:none;">
 				<a href="{devblocks_url}c=datacenter&a=server&id={$result.s_id}-{$result.s_name|devblocks_permalink}{/devblocks_url}" class="subject">{$result.s_name}</a>
-				<button type="button" class="peek" style="visibility:hidden;padding:1px;margin:0px 5px;" onclick="genericAjaxPopup('peek','c=datacenter&a=showServerPeek&view_id={$view->id}&id={$result.s_id}', null, false, '500');"><span class="cerb-sprite2 sprite-document-search-result" style="margin-left:2px" title="{$translate->_('views.peek')}"></span></button>
+				<button type="button" class="peek" style="visibility:hidden;padding:1px;margin:0px 5px;" onclick="genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={CerberusContexts::CONTEXT_SERVER}&context_id={$result.s_id}&view_id={$view->id}',null,false,'500');"><span class="cerb-sprite2 sprite-document-search-result" style="margin-left:2px" title="{$translate->_('views.peek')}"></span></button>
 			</td>
 		</tr>
 		<tr class="{$tableRowClass}">
