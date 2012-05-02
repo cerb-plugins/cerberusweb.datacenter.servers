@@ -1,19 +1,31 @@
 <?php
-class Context_Server extends Extension_DevblocksContext implements IDevblocksContextPeek {
+class Context_Server extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
 	function getRandom() {
 		return DAO_Server::random();
 	}
 	
+	function profileGetUrl($context_id) {
+		if(empty($context_id))
+			return '';
+	
+		$url_writer = DevblocksPlatform::getUrlService();
+		$url = $url_writer->writeNoProxy('c=profiles&type=server&id='.$context_id, true);
+		return $url;
+	}
+	
 	function getMeta($context_id) {
 		$server = DAO_Server::get($context_id);
-		$url_writer = DevblocksPlatform::getUrlService();
-		
+
+		$url = $this->profileGetUrl($context_id);
 		$friendly = DevblocksPlatform::strToPermalink($server->name);
+		
+		if(!empty($friendly))
+			$url .= '-' . $friendly;
 		
 		return array(
 			'id' => $server->id,
 			'name' => $server->name,
-			'permalink' => $url_writer->writeNoProxy(sprintf("c=datacenter&tab=server&id=%d-%s",$context_id, $friendly), true),
+			'permalink' => $url,
 		);
 	}
     
@@ -98,9 +110,11 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		return $values;
 	}	
 	
-	function getChooserView() {
+	function getChooserView($view_id=null) {
+		if(empty($view_id))
+			$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
+	
 		// View
-		$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
 		$defaults = new C4_AbstractViewModel();
 		$defaults->id = $view_id;
 		$defaults->is_ephemeral = true;

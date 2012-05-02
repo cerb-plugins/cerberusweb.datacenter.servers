@@ -1,7 +1,16 @@
 {$page_context = 'cerberusweb.contexts.datacenter.server'}
 {$page_context_id = $server->id}
 
-<h1>{$server->name}</h1>
+<div style="float:left;">
+	<h1>{$server->name}</h1>
+</div>
+
+<div style="float:right;">
+	{$ctx = Extension_DevblocksContext::get($page_context)}
+	{include file="devblocks:cerberusweb.core::search/quick_search.tpl" view=$ctx->getSearchView() return_url="{devblocks_url}c=search&context={$ctx->manifest->params.alias}{/devblocks_url}" reset=true}
+</div>
+
+<div style="clear:both;"></div>
 
 <fieldset class="properties">
 	<legend>{'cerberusweb.datacenter.common.server'|devblocks_translate|capitalize}</legend>
@@ -61,12 +70,11 @@
 
 <div id="datacenterServerTabs">
 	<ul>
-		{$point = Extension_ServerTab::POINT}
-		{$tabs = [activity, comments, links]}
+		{$tabs = [activity,comments, links]}
 		
 		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabActivityLog&scope=target&point={$point}&context=cerberusweb.contexts.datacenter.server&context_id={$page_context_id}{/devblocks_url}">{'common.activity_log'|devblocks_translate|capitalize}</a></li>   
-		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextComments&context=cerberusweb.contexts.datacenter.server&point={$point}&id={$page_context_id}{/devblocks_url}">{'common.comments'|devblocks_translate|capitalize}</a></li>
-		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextLinks&context=cerberusweb.contexts.datacenter.server&point={$point}&id={$page_context_id}{/devblocks_url}">{'common.links'|devblocks_translate}</a></li>
+		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextComments&point={$point}&context=cerberusweb.contexts.datacenter.server&point={$point}&id={$page_context_id}{/devblocks_url}">{'common.comments'|devblocks_translate|capitalize}</a></li>
+		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextLinks&point={$point}&context=cerberusweb.contexts.datacenter.server&point={$point}&id={$page_context_id}{/devblocks_url}">{'common.links'|devblocks_translate}</a></li>
 		
 		{foreach from=$tab_manifests item=tab_manifest}
 			{$tabs[] = $tab_manifest->params.uri}
@@ -89,7 +97,7 @@
 			$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'550');
 			$popup.one('datacenter_server_save', function(event) {
 				event.stopPropagation();
-				document.location.href = '{devblocks_url}c=datacenter&a=server&id={$page_context_id}{/devblocks_url}';
+				document.location.href = '{devblocks_url}c=profiles&type=server&id={$page_context_id}{/devblocks_url}';
 			});
 		})
 	});

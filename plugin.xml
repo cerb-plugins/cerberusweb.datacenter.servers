@@ -128,6 +128,20 @@
 			</params>
 		</extension>
 
+		<!-- Profile Page Sections -->
+		
+		<extension point="cerberusweb.ui.page.section">
+			<id>cerberusweb.profiles.server</id>
+			<name>Server Page Section</name>
+			<class>
+				<file>api/profiles/server.php</file>
+				<name>PageSection_ProfilesServer</name>
+			</class>
+			<params>
+				<param key="page_id" value="core.page.profiles" />
+				<param key="uri" value="server" />
+			</params>
+		</extension>
 
     </extensions> 
 </plugin>

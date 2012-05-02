@@ -15,70 +15,6 @@ class Page_Datacenter extends CerberusPageExtension {
 	}
 	
 	function render() {
-		$tpl = DevblocksPlatform::getTemplateService();
-		$visit = CerberusApplication::getVisit();
-		$response = DevblocksPlatform::getHttpResponse();
-		$active_worker = CerberusApplication::getActiveWorker();
-
-		// Path
-		$stack = $response->path;
-		@array_shift($stack); // datacenter
-		@$module = array_shift($stack); // server
-		
-		switch($module) {
-			case 'server':
-				@$server_id = intval(array_shift($stack)); // id
-				if(is_numeric($server_id) && null != ($server = DAO_Server::get($server_id)))
-					$tpl->assign('server', $server);
-
-				// Remember the last tab/URL
-				if(null == ($selected_tab = @$response->path[3])) {
-					$selected_tab = $visit->get(Extension_ServerTab::POINT, '');
-				}
-				$tpl->assign('selected_tab', $selected_tab);
-					
-				$tab_manifests = DevblocksPlatform::getExtensions(Extension_ServerTab::POINT, false);
-				DevblocksPlatform::sortObjects($tab_manifests, 'name');
-				$tpl->assign('tab_manifests', $tab_manifests);
-				
-				// Custom fields
-				
-				$custom_fields = DAO_CustomField::getAll();
-				$tpl->assign('custom_fields', $custom_fields);
-				
-				// Properties
-				
-				$properties = array();
-				
-//				$properties['created'] = array(
-//					'label' => ucfirst($translate->_('common.created')),
-//					'type' => Model_CustomField::TYPE_DATE,
-//					'value' => $server->created,
-//				);
-				
-				@$values = array_shift(DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.datacenter.server', $server->id)) or array();
-		
-				foreach($custom_fields as $cf_id => $cfield) {
-					if(!isset($values[$cf_id]))
-						continue;
-						
-					$properties['cf_' . $cf_id] = array(
-						'label' => $cfield->name,
-						'type' => $cfield->type,
-						'value' => $values[$cf_id],
-					);
-				}
-				
-				$tpl->assign('properties', $properties);
-				
-				// Macros
-				$macros = DAO_TriggerEvent::getByOwner(CerberusContexts::CONTEXT_WORKER, $active_worker->id, 'event.macro.server');
-				$tpl->assign('macros', $macros);
-				
-				$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/display/index.tpl');
-				break;
-		}
-		
 	}
 	
 	// Ajax
@@ -264,7 +200,7 @@ class Page_Datacenter extends CerberusPageExtension {
 					'created' => time(),
 					//'worker_id' => $active_worker->id,
 					'total' => $total,
-					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=datacenter&tab=servers', true),
+					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=search&type=server', true),
 //					'toolbar_extension_id' => 'cerberusweb.explorer.toolbar.',
 				);
 				$models[] = $model; 
@@ -282,7 +218,7 @@ class Page_Datacenter extends CerberusPageExtension {
 				$model->pos = $pos++;
 				$model->params = array(
 					'id' => $id,
-					'url' => $url_writer->writeNoProxy(sprintf("c=datacenter&tab=server&id=%d", $id), true),
+					'url' => $url_writer->writeNoProxy(sprintf("c=profiles&type=server&id=%d", $id), true),
 				);
 				$models[] = $model; 
 			}
