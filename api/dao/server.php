@@ -190,6 +190,63 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		// Render
 		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/peek.tpl');
 	}
+	
+	function importGetKeys() {
+		// [TODO] Translate
+	
+		$keys = array(
+			'name' => array(
+				'label' => 'Name',
+				'type' => Model_CustomField::TYPE_SINGLE_LINE,
+				'param' => SearchFields_Server::NAME,
+				'required' => true,
+				'force_match' => true,
+			),
+		);
+	
+		$cfields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER);
+	
+		foreach($cfields as $cfield_id => $cfield) {
+			$keys['cf_' . $cfield_id] = array(
+				'label' => $cfield->name,
+				'type' => $cfield->type,
+				'param' => 'cf_' . $cfield_id,
+			);
+		}
+	
+		DevblocksPlatform::sortObjects($keys, '[label]', true);
+	
+		return $keys;
+	}
+	
+	function importKeyValue($key, $value) {
+		switch($key) {
+		}
+	
+		return $value;
+	}
+	
+	function importSaveObject(array $fields, array $custom_fields, array $meta) {
+		// If new...
+		if(!isset($meta['object_id']) || empty($meta['object_id'])) {
+			// Make sure we have a ame
+			if(!isset($fields[DAO_Server::NAME])) {
+				$fields[DAO_Server::NAME] = 'New ' . $this->manifest->name;
+			}
+				
+			// Create
+			$meta['object_id'] = DAO_Server::create($fields);
+				
+		} else {
+			// Update
+			DAO_Server::update($meta['object_id'], $fields);
+		}
+	
+		// Custom fields
+		if(!empty($custom_fields) && !empty($meta['object_id'])) {
+			DAO_CustomFieldValue::formatAndSetFieldValues($this->manifest->id, $meta['object_id'], $custom_fields, false, true, true);
+		}
+	}	
 };
 
 class DAO_Server extends C4_ORMHelper {
