@@ -693,7 +693,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			default:
 				// Custom fields
 				if('cf_' == substr($column,0,3)) {
-					$counts = $this->_getSubtotalCountForCustomColumn('DAO_Server', $column, 's.id');
+					$counts = $this->_getSubtotalCountForCustomColumn('DAO_Server', $column, 'server.id');
 				}
 				
 				break;
