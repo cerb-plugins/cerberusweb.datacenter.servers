@@ -1,11 +1,4 @@
 <?php
-abstract class Extension_ServerTab extends DevblocksExtension {
-	const POINT = 'cerberusweb.datacenter.server.tab';
-	
-	function showTab(Model_Server $server) {}
-	function saveTab() {}
-};
-
 class Page_Datacenter extends CerberusPageExtension {
 	function isVisible() {
 		// The current session must be a logged-in worker to use this page.
@@ -16,22 +9,6 @@ class Page_Datacenter extends CerberusPageExtension {
 	
 	function render() {
 	}
-	
-	// Ajax
-	function showServerTabAction() {
-		@$ext_id = DevblocksPlatform::importGPC($_REQUEST['ext_id'],'string','');
-		@$server_id = DevblocksPlatform::importGPC($_REQUEST['server_id'],'integer',0);
-		
-		$visit = CerberusApplication::getVisit();
-		
-		if(null != ($tab_mft = DevblocksPlatform::getExtension($ext_id)) 
-			&& null != ($inst = $tab_mft->createInstance()) 
-			&& $inst instanceof Extension_ServerTab) {
-				$visit->set(Extension_ServerTab::POINT, $inst->manifest->params['uri']);
-				$server = DAO_Server::get($server_id);
-				$inst->showTab($server);
-		}
-	}	
 	
 	function saveServerPeekAction() {
 		$active_worker = CerberusApplication::getActiveWorker();

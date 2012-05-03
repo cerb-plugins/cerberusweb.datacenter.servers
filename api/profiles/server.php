@@ -42,7 +42,7 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 
 		// Remember the last tab/URL
 		
-		$point = 'cerberusweb.datacenter.server.tab';
+		$point = 'cerberusweb.profiles.server';
 		$tpl->assign('point', $point);
 
 		@$selected_tab = array_shift($stack);
@@ -52,12 +52,6 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		}
 		$tpl->assign('selected_tab', $selected_tab);
 
-		// Tabs
-		
-		$tab_manifests = DevblocksPlatform::getExtensions('cerberusweb.datacenter.server.tab', false);
-		DevblocksPlatform::sortObjects($tab_manifests, 'name');
-		$tpl->assign('tab_manifests', $tab_manifests);
-		
 		// Custom fields
 		
 		$custom_fields = DAO_CustomField::getAll();
@@ -86,6 +80,11 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		$macros = DAO_TriggerEvent::getByOwner(CerberusContexts::CONTEXT_WORKER, $active_worker->id, 'event.macro.server');
 		$tpl->assign('macros', $macros);
 		
+		// Tabs
+		$tab_manifests = Extension_ContextProfileTab::getExtensions(false, CerberusContexts::CONTEXT_SERVER);
+		$tpl->assign('tab_manifests', $tab_manifests);
+		
+		// Template
 		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/profile.tpl');		
 	}
 };
