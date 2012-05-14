@@ -188,7 +188,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$tpl->assign('last_comment', $last_comment);
 		
 		// Render
-		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/peek.tpl');
+		$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek.tpl');
 	}
 	
 	function importGetKeys() {
@@ -716,7 +716,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		switch($this->renderTemplate) {
 			case 'contextlinks_chooser':
 			default:
-				$tpl->assign('view_template', 'devblocks:cerberusweb.datacenter::datacenter/servers/view.tpl');
+				$tpl->assign('view_template', 'devblocks:cerberusweb.datacenter.servers::datacenter/servers/view.tpl');
 				$tpl->display('devblocks:cerberusweb.core::internal/views/subtotals_and_view.tpl');
 				break;
 		}

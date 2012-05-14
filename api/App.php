@@ -87,7 +87,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		$macros = DAO_TriggerEvent::getByOwner(CerberusContexts::CONTEXT_WORKER, $active_worker->id, 'event.macro.server');
 		$tpl->assign('macros', $macros);
 		
-		$tpl->display('devblocks:cerberusweb.datacenter::datacenter/servers/bulk.tpl');
+		$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/bulk.tpl');
 	}
 	
 	function doServerBulkUpdateAction() {
