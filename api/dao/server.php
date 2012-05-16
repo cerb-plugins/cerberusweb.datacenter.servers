@@ -461,14 +461,20 @@ class DAO_Server extends C4_ORMHelper {
 		if(!is_a($param, 'DevblocksSearchCriteria'))
 			return;
 		
+		$from_context = 'cerberusweb.contexts.datacenter.server';
+		$from_index = 'server.id';
+		
 		$param_key = $param->field;
 		settype($param_key, 'string');
+		
 		switch($param_key) {
+			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
+				$args['has_multiple_values'] = true;
+				self::_searchComponentsVirtualContextLinks($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
+				break;
+			
 			case SearchFields_Server::VIRTUAL_WATCHERS:
 				$args['has_multiple_values'] = true;
-				$from_context = 'cerberusweb.contexts.datacenter.server';
-				$from_index = 'server.id';
-				
 				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
 				break;
 		}
@@ -549,6 +555,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 	const ID = 's_id';
 	const NAME = 's_name';
 	
+	const VIRTUAL_CONTEXT_LINK = '*_context_link';
 	const VIRTUAL_WATCHERS = '*_workers';
 	
 	const CONTEXT_LINK = 'cl_context_from';
@@ -567,6 +574,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 			self::ID => new DevblocksSearchField(self::ID, 'server', 'id', $translate->_('common.id')),
 			self::NAME => new DevblocksSearchField(self::NAME, 'server', 'name', $translate->_('common.name'), Model_CustomField::TYPE_SINGLE_LINE),
 			
+			self::VIRTUAL_CONTEXT_LINK => new DevblocksSearchField(self::VIRTUAL_CONTEXT_LINK, '*', 'context_link', $translate->_('common.links'), null),
 			self::VIRTUAL_WATCHERS => new DevblocksSearchField(self::VIRTUAL_WATCHERS, '*', 'workers', $translate->_('common.watchers'), 'WS'),
 			
 			self::CONTEXT_LINK => new DevblocksSearchField(self::CONTEXT_LINK, 'context_link', 'from_context', null),
@@ -618,6 +626,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		// Filter cols
 		$this->addColumnsHidden(array(
 			SearchFields_Server::FULLTEXT_COMMENT_CONTENT,
+			SearchFields_Server::VIRTUAL_CONTEXT_LINK,
 			SearchFields_Server::VIRTUAL_WATCHERS,
 		));
 		
@@ -730,21 +739,33 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			case SearchFields_Server::NAME:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__string.tpl');
 				break;
+				
 			case SearchFields_Server::ID:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__number.tpl');
 				break;
+				
 			case 'placeholder_bool':
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__bool.tpl');
 				break;
+				
 			case 'placeholder_date':
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__date.tpl');
 				break;
+				
+			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
+				$contexts = Extension_DevblocksContext::getAll(false);
+				$tpl->assign('contexts', $contexts);
+				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_link.tpl');
+				break;
+				
 			case SearchFields_Server::VIRTUAL_WATCHERS:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_worker.tpl');
 				break;
+				
 			case SearchFields_Server::FULLTEXT_COMMENT_CONTENT:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__fulltext.tpl');
 				break;
+				
 			default:
 				// Custom Fields
 				if('cf_' == substr($field,0,3)) {
@@ -760,6 +781,10 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		$key = $param->field;
 		
 		switch($key) {
+			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
+				$this->_renderVirtualContextLinks($param);
+				break;
+			
 			case SearchFields_Server::VIRTUAL_WATCHERS:
 				$this->_renderVirtualWatchers($param);
 				break;
@@ -800,6 +825,11 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			case 'placeholder_bool':
 				@$bool = DevblocksPlatform::importGPC($_REQUEST['bool'],'integer',1);
 				$criteria = new DevblocksSearchCriteria($field,$oper,$bool);
+				break;
+				
+			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
+				@$context_links = DevblocksPlatform::importGPC($_REQUEST['context_link'],'array',array());
+				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$context_links);
 				break;
 				
 			case SearchFields_Server::VIRTUAL_WATCHERS:
