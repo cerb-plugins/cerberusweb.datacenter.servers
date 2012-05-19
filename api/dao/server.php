@@ -668,7 +668,8 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			$pass = false;
 			
 			switch($field_key) {
-				// DAO
+				// Virtuals
+				case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
 				case SearchFields_Server::VIRTUAL_WATCHERS:
 					$pass = true;
 					break;
@@ -683,7 +684,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			if($pass)
 				$fields[$field_key] = $field_model;
 		}
-		
+
 		return $fields;
 	}
 	
@@ -695,6 +696,10 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			return array();
 		
 		switch($column) {
+			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
+				$counts = $this->_getSubtotalCountForContextLinkColumn('DAO_Server', CerberusContexts::CONTEXT_SERVER, $column);
+				break;
+			
 			case SearchFields_Server::VIRTUAL_WATCHERS:
 				$counts = $this->_getSubtotalCountForWatcherColumn('DAO_Server', $column);
 				break;
