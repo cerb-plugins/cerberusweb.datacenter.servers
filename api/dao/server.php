@@ -319,10 +319,7 @@ class DAO_Server extends C4_ORMHelper {
 	 * @param integer $id
 	 * @return Model_Server	 */
 	static function get($id) {
-		$objects = self::getWhere(sprintf("%s = %d",
-			self::ID,
-			$id
-		));
+		$objects = self::getAll();
 		
 		if(isset($objects[$id]))
 			return $objects[$id];
