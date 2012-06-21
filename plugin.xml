@@ -4,14 +4,14 @@
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenters.</description>
 	<author>WebGroup Media, LLC.</author>
-	<version>1.0.5</version>
-	<link>https://github.com/cerb5-plugins/cerberusweb.datacenter.servers</link>
+	<version>1.0.6</version>
+	<link>https://github.com/cerb-plugins/cerberusweb.datacenter.servers</link>
 	<image>plugin.png</image>
  
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="6.0" max="6.0.99" />
+		<app_version min="6.0.2" max="6.0.99" />
 	</requires>
  
 	<!-- Plugin Dependencies -->

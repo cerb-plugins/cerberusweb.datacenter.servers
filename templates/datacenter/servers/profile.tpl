@@ -41,7 +41,7 @@
 		</span>
 		
 		<!-- Macros -->
-		{devblocks_url assign=return_url full=true}c=datacenter&tab=server&id={$page_context_id}-{$server->name|devblocks_permalink}{/devblocks_url}
+		{devblocks_url assign=return_url full=true}c=profiles&type=server&id={$page_context_id}-{$server->name|devblocks_permalink}{/devblocks_url}
 		{include file="devblocks:cerberusweb.core::internal/macros/display/button.tpl" context=$page_context context_id=$page_context_id macros=$macros return_url=$return_url}		
 		
 		<!-- Edit -->
