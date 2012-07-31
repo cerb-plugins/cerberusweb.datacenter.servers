@@ -4,7 +4,7 @@
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenters.</description>
 	<author>WebGroup Media, LLC.</author>
-	<version>1.0.7</version>
+	<version>1.0.8</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.datacenter.servers.html</link>
 	<image>plugin.png</image>
  
@@ -77,6 +77,7 @@
 			</class>
 			<params>
 				<param key="alias" value="server" />
+				<param key="dao_class" value="DAO_Server" />
 				<param key="view_class" value="View_Server" />
 				<param key="options">
 					<value>
