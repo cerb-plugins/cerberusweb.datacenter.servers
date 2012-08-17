@@ -1,6 +1,7 @@
 <form action="{devblocks_url}{/devblocks_url}" method="post" id="frmServer">
 <input type="hidden" name="c" value="datacenter">
 <input type="hidden" name="a" value="saveServerPeek">
+<input type="hidden" name="view_id" value="{$view_id}">
 {if !empty($model) && !empty($model->id)}<input type="hidden" name="id" value="{$model->id}">{/if}
 <input type="hidden" name="do_delete" value="0">
 
