@@ -73,7 +73,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=datacenter&tab=server&id=%d-%s",$server->id, DevblocksPlatform::strToPermalink($server->name)), true);
 		}
 		
-		return true;		
+		return true;
 	}
 
 	function lazyLoadContextValues($token, $dictionary) {
@@ -108,7 +108,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		}
 		
 		return $values;
-	}	
+	}
 	
 	function getChooserView($view_id=null) {
 		if(empty($view_id))
@@ -129,14 +129,14 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$view->renderTemplate = 'contextlinks_chooser';
 		
 		C4_AbstractViewLoader::setView($view_id, $view);
-		return $view;		
+		return $view;
 	}
 	
 	function getView($context=null, $context_id=null, $options=array()) {
 		$view_id = str_replace('.','_',$this->id);
 		
 		$defaults = new C4_AbstractViewModel();
-		$defaults->id = $view_id; 
+		$defaults->id = $view_id;
 		$defaults->class_name = $this->getViewClass();
 		$view = C4_AbstractViewLoader::getView($view_id, $defaults);
 		//$view->name = 'Sites';
@@ -171,7 +171,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$tpl->assign('model', $model);
 		
 		// Custom fields
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server'); 
+		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server');
 		$tpl->assign('custom_fields', $custom_fields);
 
 		$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.datacenter.server', $id);
@@ -246,7 +246,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		if(!empty($custom_fields) && !empty($meta['object_id'])) {
 			DAO_CustomFieldValue::formatAndSetFieldValues($this->manifest->id, $meta['object_id'], $custom_fields, false, true, true);
 		}
-	}	
+	}
 };
 
 class DAO_Server extends C4_ORMHelper {
@@ -268,11 +268,43 @@ class DAO_Server extends C4_ORMHelper {
 	}
 	
 	static function update($ids, $fields) {
-		parent::_update($ids, 'server', $fields);
+		if(!is_array($ids))
+			$ids = array($ids);
 		
-	    // Log the context update
-   		DevblocksPlatform::markContextChanged(CerberusContexts::CONTEXT_SERVER, $ids);
+		// Make a diff for the requested objects in batches
 		
+		$chunks = array_chunk($ids, 100, true);
+		while($batch_ids = array_shift($chunks)) {
+			if(empty($batch_ids))
+				continue;
+			
+			// Get state before changes
+			$object_changes = parent::_getUpdateDeltas($batch_ids, $fields, get_class());
+
+			// Make changes
+			parent::_update($batch_ids, 'server', $fields);
+			
+			// Send events
+			if(!empty($object_changes)) {
+				// Local events
+				//self::_processUpdateEvents($object_changes);
+				
+				// Trigger an event about the changes
+				$eventMgr = DevblocksPlatform::getEventService();
+				$eventMgr->trigger(
+					new Model_DevblocksEvent(
+						'dao.server.update',
+						array(
+							'objects' => $object_changes,
+						)
+					)
+				);
+				
+				// Log the context update
+				DevblocksPlatform::markContextChanged(CerberusContexts::CONTEXT_SERVER, $batch_ids);
+			}
+		}
+
 		self::clearCache();
 	}
 	
@@ -454,7 +486,7 @@ class DAO_Server extends C4_ORMHelper {
 		);
 		
 		return $result;
-	}	
+	}
 	
 	private static function _translateVirtualParameters($param, $key, &$args) {
 		if(!is_a($param, 'DevblocksSearchCriteria'))
@@ -503,7 +535,7 @@ class DAO_Server extends C4_ORMHelper {
 		$has_multiple_values = $query_parts['has_multiple_values'];
 		$sort_sql = $query_parts['sort'];
 		
-		$sql = 
+		$sql =
 			$select_sql.
 			$join_sql.
 			$where_sql.
@@ -532,7 +564,7 @@ class DAO_Server extends C4_ORMHelper {
 
 		// [JAS]: Count all
 		if($withCounts) {
-			$count_sql = 
+			$count_sql =
 				($has_multiple_values ? "SELECT COUNT(DISTINCT server.id) " : "SELECT COUNT(server.id) ").
 				$join_sql.
 				$where_sql;
@@ -597,7 +629,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 		// Sort by label (translation-conscious)
 		DevblocksPlatform::sortObjects($columns, 'db_label');
 
-		return $columns;		
+		return $columns;
 	}
 };
 
@@ -713,7 +745,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		}
 		
 		return $counts;
-	}	
+	}
 	
 	function render() {
 		$this->_sanitize();
@@ -793,7 +825,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 				$this->_renderVirtualWatchers($param);
 				break;
 		}
-	}	
+	}
 	
 	function renderCriteriaParam($param) {
 		$field = $param->field;
@@ -938,5 +970,5 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		}
 
 		unset($ids);
-	}			
+	}
 };
