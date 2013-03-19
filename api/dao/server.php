@@ -249,7 +249,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 	}
 };
 
-class DAO_Server extends C4_ORMHelper {
+class DAO_Server extends Cerb_ORMHelper {
 	const CACHE_ALL = 'cerberus_cache_servers_all';
 	
 	const ID = 'id';

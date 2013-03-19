@@ -54,7 +54,8 @@ class Page_Datacenter extends CerberusPageExtension {
 					DAO_Comment::CONTEXT => 'cerberusweb.contexts.datacenter.server',
 					DAO_Comment::CONTEXT_ID => $id,
 					DAO_Comment::COMMENT => $comment,
-					DAO_Comment::ADDRESS_ID => $active_worker->getAddress()->id,
+					DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
+					DAO_Comment::OWNER_CONTEXT_ID => $active_worker->id,
 				);
 				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
 			}
@@ -141,7 +142,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		$view->doBulkUpdate($filter, $do, $ids);
 		
 		$view->render();
-		return;		
+		return;
 	}
 	
 	function viewServersExploreAction() {
@@ -151,7 +152,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		$url_writer = DevblocksPlatform::getUrlService();
 		
 		// Generate hash
-		$hash = md5($view_id.$active_worker->id.time()); 
+		$hash = md5($view_id.$active_worker->id.time());
 		
 		// Loop through view and get IDs
 		$view = C4_AbstractViewLoader::getView($view_id);
@@ -185,7 +186,7 @@ class Page_Datacenter extends CerberusPageExtension {
 					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=search&type=server', true),
 //					'toolbar_extension_id' => 'cerberusweb.explorer.toolbar.',
 				);
-				$models[] = $model; 
+				$models[] = $model;
 				
 				$view->renderTotal = false; // speed up subsequent pages
 			}
@@ -202,7 +203,7 @@ class Page_Datacenter extends CerberusPageExtension {
 					'id' => $id,
 					'url' => $url_writer->writeNoProxy(sprintf("c=profiles&type=server&id=%d", $id), true),
 				);
-				$models[] = $model; 
+				$models[] = $model;
 			}
 			
 			DAO_ExplorerSet::createFromModels($models);
@@ -212,7 +213,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		} while(!empty($results));
 		
 		DevblocksPlatform::redirect(new DevblocksHttpResponse(array('explore',$hash,$orig_pos)));
-	}	
+	}
 };
 
 if (class_exists('DevblocksEventListenerExtension')):

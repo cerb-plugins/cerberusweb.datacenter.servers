@@ -3,7 +3,7 @@
 	<id>cerberusweb.datacenter.servers</id>
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenters.</description>
-	<author>WebGroup Media, LLC.</author>
+	<author>Webgroup Media, LLC.</author>
 	<version>1.0.15</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.datacenter.servers.html</link>
 	<image>plugin.png</image>
