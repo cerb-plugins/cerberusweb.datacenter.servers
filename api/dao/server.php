@@ -34,7 +34,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			$prefix = 'Server:';
 		
 		$translate = DevblocksPlatform::getTranslationService();
-		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server');
+		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER);
 		
 		// Polymorph
 		if(is_numeric($server)) {
@@ -171,10 +171,10 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$tpl->assign('model', $model);
 		
 		// Custom fields
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server');
+		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER, false);
 		$tpl->assign('custom_fields', $custom_fields);
 
-		$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.datacenter.server', $id);
+		$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_SERVER, $id);
 		if(isset($custom_field_values[$id]))
 			$tpl->assign('custom_field_values', $custom_field_values[$id]);
 		
@@ -182,7 +182,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$tpl->assign('types', $types);
 		
 		// Comments
-		$comments = DAO_Comment::getByContext('cerberusweb.contexts.datacenter.server', $id);
+		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_SERVER, $id);
 		$last_comment = array_shift($comments);
 		unset($comments);
 		$tpl->assign('last_comment', $last_comment);
@@ -395,7 +395,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	        new Model_DevblocksEvent(
 	            'context.delete',
                 array(
-                	'context' => 'cerberusweb.contexts.datacenter.server',
+                	'context' => CerberusContexts::CONTEXT_SERVER,
                 	'context_ids' => $ids
                 )
             )
@@ -413,7 +413,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	        new Model_DevblocksEvent(
 	            'context.maint',
                 array(
-                	'context' => 'cerberusweb.contexts.datacenter.server',
+                	'context' => CerberusContexts::CONTEXT_SERVER,
                 	'context_table' => 'server',
                 	'context_key' => 'id',
                 )
@@ -493,7 +493,7 @@ class DAO_Server extends Cerb_ORMHelper {
 		if(!is_a($param, 'DevblocksSearchCriteria'))
 			return;
 		
-		$from_context = 'cerberusweb.contexts.datacenter.server';
+		$from_context = CerberusContexts::CONTEXT_SERVER;
 		$from_index = 'server.id';
 		
 		$param_key = $param->field;
@@ -619,7 +619,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 		}
 		
 		// Custom Fields
-		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server');
+		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER);
 
 		if(is_array($fields))
 		foreach($fields as $field_id => $field) {
@@ -756,7 +756,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		$tpl->assign('view', $this);
 
 		// Custom fields
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server');
+		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER);
 		$tpl->assign('custom_fields', $custom_fields);
 
 		switch($this->renderTemplate) {
@@ -947,7 +947,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			DAO_Server::update($batch_ids, $change_fields);
 
 			// Custom Fields
-			self::_doBulkSetCustomFields('cerberusweb.contexts.datacenter.server', $custom_fields, $batch_ids);
+			self::_doBulkSetCustomFields(CerberusContexts::CONTEXT_SERVER, $custom_fields, $batch_ids);
 			
 			// Scheduled behavior
 			if(isset($do['behavior']) && is_array($do['behavior'])) {
@@ -959,7 +959,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 				foreach($batch_ids as $batch_id) {
 					DAO_ContextScheduledBehavior::create(array(
 						DAO_ContextScheduledBehavior::BEHAVIOR_ID => $behavior_id,
-						DAO_ContextScheduledBehavior::CONTEXT => 'cerberusweb.contexts.datacenter.server',
+						DAO_ContextScheduledBehavior::CONTEXT => CerberusContexts::CONTEXT_SERVER,
 						DAO_ContextScheduledBehavior::CONTEXT_ID => $batch_id,
 						DAO_ContextScheduledBehavior::RUN_DATE => $behavior_when,
 						DAO_ContextScheduledBehavior::VARIABLES_JSON => json_encode($behavior_params),

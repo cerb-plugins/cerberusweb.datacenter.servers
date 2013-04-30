@@ -81,6 +81,7 @@
 				<param key="view_class" value="View_Server" />
 				<param key="options">
 					<value>
+						<data key="custom_fields" />
 						<data key="create" />
 						<data key="find" />
 						<data key="snippets" />

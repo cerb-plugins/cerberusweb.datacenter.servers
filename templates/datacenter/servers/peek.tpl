@@ -24,8 +24,8 @@
 					<button type="button" class="chooser_watcher"><span class="cerb-sprite sprite-view"></span></button>
 					<ul class="chooser-container bubbles" style="display:block;"></ul>
 				{else}
-					{$object_watchers = DAO_ContextLink::getContextLinks('cerberusweb.contexts.datacenter.server', array($model->id), CerberusContexts::CONTEXT_WORKER)}
-					{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context='cerberusweb.contexts.datacenter.server' context_id=$model->id full=true}
+					{$object_watchers = DAO_ContextLink::getContextLinks(CerberusContexts::CONTEXT_SERVER, array($model->id), CerberusContexts::CONTEXT_WORKER)}
+					{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context=CerberusContexts::CONTEXT_SERVER context_id=$model->id full=true}
 				{/if}
 			</td>
 		</tr>
@@ -39,6 +39,8 @@
 	{include file="devblocks:cerberusweb.core::internal/custom_fields/bulk/form.tpl" bulk=false}
 </fieldset>
 {/if}
+
+{include file="devblocks:cerberusweb.core::internal/custom_field_groups/peek_custom_fieldsets.tpl" context=CerberusContexts::CONTEXT_SERVER context_id=$model->id}
 
 {* Comment *}
 {if !empty($last_comment)}
