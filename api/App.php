@@ -76,17 +76,17 @@ class Page_Datacenter extends CerberusPageExtension {
 		$tpl = DevblocksPlatform::getTemplateService();
 		$tpl->assign('view_id', $view_id);
 
-	    if(!empty($ids)) {
-	        $id_list = DevblocksPlatform::parseCsvString($ids);
-	        $tpl->assign('ids', implode(',', $id_list));
-	    }
+		if(!empty($ids)) {
+			$id_list = DevblocksPlatform::parseCsvString($ids);
+			$tpl->assign('ids', implode(',', $id_list));
+		}
 		
-   		// Groups
+		// Groups
 		$groups = DAO_Group::getAll();
 		$tpl->assign('groups', $groups);
 		
 		// Custom Fields
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.datacenter.server');
+		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER, false);
 		$tpl->assign('custom_fields', $custom_fields);
 		
 		// Macros
@@ -98,10 +98,10 @@ class Page_Datacenter extends CerberusPageExtension {
 	
 	function doServerBulkUpdateAction() {
 		// Filter: whole list or check
-	    @$filter = DevblocksPlatform::importGPC($_REQUEST['filter'],'string','');
+		@$filter = DevblocksPlatform::importGPC($_REQUEST['filter'],'string','');
 		$ids = array();
-	    
-	    // View
+		
+		// View
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
 		$view = C4_AbstractViewLoader::getView($view_id);
 		
@@ -127,7 +127,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		switch($filter) {
 			// Checked rows
 			case 'checks':
-			    @$ids_str = DevblocksPlatform::importGPC($_REQUEST['ids'],'string');
+				@$ids_str = DevblocksPlatform::importGPC($_REQUEST['ids'],'string');
 				$ids = DevblocksPlatform::parseCsvString($ids_str);
 				break;
 			case 'sample':

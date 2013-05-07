@@ -28,7 +28,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			'permalink' => $url,
 		);
 	}
-    
+	
 	function getContext($server, &$token_labels, &$token_values, $prefix=null) {
 		if(is_null($prefix))
 			$prefix = 'Server:';
@@ -51,11 +51,10 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			'record_url' => $prefix.$translate->_('common.url.record'),
 		);
 		
-		if(is_array($fields))
-		foreach($fields as $cf_id => $field) {
-			$token_labels['custom_'.$cf_id] = $prefix.$field->name;
-		}
-
+		// Custom field/fieldset token labels
+		if(false !== ($custom_field_labels = $this->_getTokenLabelsFromCustomFields($fields, $prefix)) && is_array($custom_field_labels))
+			$token_labels = array_merge($token_labels, $custom_field_labels);
+		
 		// Token values
 		$token_values = array();
 		
@@ -314,13 +313,13 @@ class DAO_Server extends Cerb_ORMHelper {
 	}
 	
 	static function getAll($nocache=false) {
-	    $cache = DevblocksPlatform::getCacheService();
-	    if($nocache || null === ($servers = $cache->load(self::CACHE_ALL))) {
-    	    $servers = self::getWhere();
-    	    $cache->save($servers, self::CACHE_ALL);
-	    }
-	    
-	    return $servers;
+		$cache = DevblocksPlatform::getCacheService();
+		if($nocache || null === ($servers = $cache->load(self::CACHE_ALL))) {
+			$servers = self::getWhere();
+			$cache->save($servers, self::CACHE_ALL);
+		}
+		
+		return $servers;
 	}
 	
 	/**
@@ -390,16 +389,16 @@ class DAO_Server extends Cerb_ORMHelper {
 		$db->Execute(sprintf("DELETE FROM server WHERE id IN (%s)", $ids_list));
 		
 		// Fire event
-	    $eventMgr = DevblocksPlatform::getEventService();
-	    $eventMgr->trigger(
-	        new Model_DevblocksEvent(
-	            'context.delete',
-                array(
-                	'context' => CerberusContexts::CONTEXT_SERVER,
-                	'context_ids' => $ids
-                )
-            )
-	    );
+		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr->trigger(
+			new Model_DevblocksEvent(
+				'context.delete',
+				array(
+					'context' => CerberusContexts::CONTEXT_SERVER,
+					'context_ids' => $ids
+				)
+			)
+		);
 		
 		self::clearCache();
 		
@@ -408,17 +407,17 @@ class DAO_Server extends Cerb_ORMHelper {
 	
 	public static function maint() {
 		// Fire event
-	    $eventMgr = DevblocksPlatform::getEventService();
-	    $eventMgr->trigger(
-	        new Model_DevblocksEvent(
-	            'context.maint',
-                array(
-                	'context' => CerberusContexts::CONTEXT_SERVER,
-                	'context_table' => 'server',
-                	'context_key' => 'id',
-                )
-            )
-	    );
+		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr->trigger(
+			new Model_DevblocksEvent(
+				'context.maint',
+				array(
+					'context' => CerberusContexts::CONTEXT_SERVER,
+					'context_table' => 'server',
+					'context_key' => 'id',
+				)
+			)
+		);
 	}
 	
 	public static function random() {
@@ -432,7 +431,7 @@ class DAO_Server extends Cerb_ORMHelper {
 		if('*'==substr($sortBy,0,1) || !isset($fields[$sortBy]))
 			$sortBy=null;
 
-        list($tables,$wheres) = parent::_parseSearchParams($params, $columns, $fields, $sortBy);
+		list($tables,$wheres) = parent::_parseSearchParams($params, $columns, $fields, $sortBy);
 		
 		$select_sql = sprintf("SELECT ".
 			"server.id as %s, ".
@@ -504,6 +503,10 @@ class DAO_Server extends Cerb_ORMHelper {
 				$args['has_multiple_values'] = true;
 				self::_searchComponentsVirtualContextLinks($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
 				break;
+				
+			case SearchFields_Server::VIRTUAL_HAS_FIELDSET:
+				self::_searchComponentsVirtualHasFieldset($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
+				break;
 			
 			case SearchFields_Server::VIRTUAL_WATCHERS:
 				$args['has_multiple_values'] = true;
@@ -512,19 +515,19 @@ class DAO_Server extends Cerb_ORMHelper {
 		}
 	}
 	
-    /**
-     * Enter description here...
-     *
-     * @param array $columns
-     * @param DevblocksSearchCriteria[] $params
-     * @param integer $limit
-     * @param integer $page
-     * @param string $sortBy
-     * @param boolean $sortAsc
-     * @param boolean $withCounts
-     * @return array
-     */
-    static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
+	/**
+	 * Enter description here...
+	 *
+	 * @param array $columns
+	 * @param DevblocksSearchCriteria[] $params
+	 * @param integer $limit
+	 * @param integer $page
+	 * @param string $sortBy
+	 * @param boolean $sortAsc
+	 * @param boolean $withCounts
+	 * @return array
+	 */
+	static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
 		$db = DevblocksPlatform::getDatabaseService();
 	
 		// Build search queries
@@ -545,10 +548,10 @@ class DAO_Server extends Cerb_ORMHelper {
 			
 		// [TODO] Could push the select logic down a level too
 		if($limit > 0) {
-    		$rs = $db->SelectLimit($sql,$limit,$page*$limit) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
+			$rs = $db->SelectLimit($sql,$limit,$page*$limit) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
 		} else {
-		    $rs = $db->Execute($sql) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
-            $total = mysql_num_rows($rs);
+			$rs = $db->Execute($sql) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
+			$total = mysql_num_rows($rs);
 		}
 		
 		$results = array();
@@ -588,6 +591,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 	const NAME = 's_name';
 	
 	const VIRTUAL_CONTEXT_LINK = '*_context_link';
+	const VIRTUAL_HAS_FIELDSET = '*_has_fieldset';
 	const VIRTUAL_WATCHERS = '*_workers';
 	
 	const CONTEXT_LINK = 'cl_context_from';
@@ -607,6 +611,7 @@ class SearchFields_Server implements IDevblocksSearchFields {
 			self::NAME => new DevblocksSearchField(self::NAME, 'server', 'name', $translate->_('common.name'), Model_CustomField::TYPE_SINGLE_LINE),
 			
 			self::VIRTUAL_CONTEXT_LINK => new DevblocksSearchField(self::VIRTUAL_CONTEXT_LINK, '*', 'context_link', $translate->_('common.links'), null),
+			self::VIRTUAL_HAS_FIELDSET => new DevblocksSearchField(self::VIRTUAL_HAS_FIELDSET, '*', 'has_fieldset', $translate->_('common.fieldset'), null),
 			self::VIRTUAL_WATCHERS => new DevblocksSearchField(self::VIRTUAL_WATCHERS, '*', 'workers', $translate->_('common.watchers'), 'WS'),
 			
 			self::CONTEXT_LINK => new DevblocksSearchField(self::CONTEXT_LINK, 'context_link', 'from_context', null),
@@ -618,14 +623,14 @@ class SearchFields_Server implements IDevblocksSearchFields {
 			$columns[self::FULLTEXT_COMMENT_CONTENT] = new DevblocksSearchField(self::FULLTEXT_COMMENT_CONTENT, 'ftcc', 'content', $translate->_('comment.filters.content'), 'FT');
 		}
 		
-		// Custom Fields
-		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER);
-
-		if(is_array($fields))
-		foreach($fields as $field_id => $field) {
-			$key = 'cf_'.$field_id;
-			$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name,$field->type);
-		}
+		// Custom fields with fieldsets
+		
+		$custom_columns = DevblocksSearchField::getCustomSearchFieldsByContexts(array(
+			CerberusContexts::CONTEXT_SERVER,
+		));
+		
+		if(is_array($custom_columns))
+			$columns = array_merge($columns, $custom_columns);
 		
 		// Sort by label (translation-conscious)
 		DevblocksPlatform::sortObjects($columns, 'db_label');
@@ -659,6 +664,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		$this->addColumnsHidden(array(
 			SearchFields_Server::FULLTEXT_COMMENT_CONTENT,
 			SearchFields_Server::VIRTUAL_CONTEXT_LINK,
+			SearchFields_Server::VIRTUAL_HAS_FIELDSET,
 			SearchFields_Server::VIRTUAL_WATCHERS,
 		));
 		
@@ -691,7 +697,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 	}
 	
 	function getSubtotalFields() {
-		$all_fields = $this->getParamsAvailable();
+		$all_fields = $this->getParamsAvailable(true);
 		
 		$fields = array();
 
@@ -702,6 +708,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			switch($field_key) {
 				// Virtuals
 				case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
+				case SearchFields_Server::VIRTUAL_HAS_FIELDSET:
 				case SearchFields_Server::VIRTUAL_WATCHERS:
 					$pass = true;
 					break;
@@ -730,6 +737,10 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		switch($column) {
 			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
 				$counts = $this->_getSubtotalCountForContextLinkColumn('DAO_Server', CerberusContexts::CONTEXT_SERVER, $column);
+				break;
+				
+			case SearchFields_Server::VIRTUAL_HAS_FIELDSET:
+				$counts = $this->_getSubtotalCountForHasFieldsetColumn('DAO_Server', CerberusContexts::CONTEXT_SERVER, $column);
 				break;
 			
 			case SearchFields_Server::VIRTUAL_WATCHERS:
@@ -795,6 +806,10 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_link.tpl');
 				break;
 				
+			case SearchFields_Server::VIRTUAL_HAS_FIELDSET:
+				$this->_renderCriteriaHasFieldset($tpl, CerberusContexts::CONTEXT_SERVER);
+				break;
+				
 			case SearchFields_Server::VIRTUAL_WATCHERS:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_worker.tpl');
 				break;
@@ -820,6 +835,10 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 		switch($key) {
 			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
 				$this->_renderVirtualContextLinks($param);
+				break;
+				
+			case SearchFields_Server::VIRTUAL_HAS_FIELDSET:
+				$this->_renderVirtualHasFieldset($param);
 				break;
 			
 			case SearchFields_Server::VIRTUAL_WATCHERS:
@@ -867,6 +886,11 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals {
 			case SearchFields_Server::VIRTUAL_CONTEXT_LINK:
 				@$context_links = DevblocksPlatform::importGPC($_REQUEST['context_link'],'array',array());
 				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$context_links);
+				break;
+				
+			case SearchFields_Server::VIRTUAL_HAS_FIELDSET:
+				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',array());
+				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$options);
 				break;
 				
 			case SearchFields_Server::VIRTUAL_WATCHERS:

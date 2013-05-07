@@ -66,10 +66,10 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		if(!empty($properties_cfields))
 			$properties = array_merge($properties, $properties_cfields);
 		
-		// Custom Field Groups
+		// Custom Fieldsets
 
-		$properties_custom_field_groups = Page_Profiles::getProfilePropertiesCustomFieldSets(CerberusContexts::CONTEXT_SERVER, $server->id, $values);
-		$tpl->assign('properties_custom_field_groups', $properties_custom_field_groups);
+		$properties_custom_fieldsets = Page_Profiles::getProfilePropertiesCustomFieldsets(CerberusContexts::CONTEXT_SERVER, $server->id, $values);
+		$tpl->assign('properties_custom_fieldsets', $properties_custom_fieldsets);
 		
 		// Properties
 		
