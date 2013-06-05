@@ -38,7 +38,7 @@ class Page_Datacenter extends CerberusPageExtension {
 				
 				// View marquee
 				if(!empty($id) && !empty($view_id)) {
-					C4_AbstractView::setMarqueeContextCreated($view_id, 'cerberusweb.contexts.datacenter.server', $id);
+					C4_AbstractView::setMarqueeContextCreated($view_id, CerberusContexts::CONTEXT_SERVER, $id);
 				}
 				
 			} else {
@@ -51,7 +51,7 @@ class Page_Datacenter extends CerberusPageExtension {
 				
 				$fields = array(
 					DAO_Comment::CREATED => time(),
-					DAO_Comment::CONTEXT => 'cerberusweb.contexts.datacenter.server',
+					DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_SERVER,
 					DAO_Comment::CONTEXT_ID => $id,
 					DAO_Comment::COMMENT => $comment,
 					DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
@@ -60,9 +60,16 @@ class Page_Datacenter extends CerberusPageExtension {
 				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
 			}
 			
+			// Context Link (if given)
+			@$link_context = DevblocksPlatform::importGPC($_REQUEST['link_context'],'string','');
+			@$link_context_id = DevblocksPlatform::importGPC($_REQUEST['link_context_id'],'integer','');
+			if(!empty($id) && !empty($link_context) && !empty($link_context_id)) {
+				DAO_ContextLink::setLink(CerberusContexts::CONTEXT_SERVER, $id, $link_context, $link_context_id);
+			}
+			
 			// Custom field saves
 			@$field_ids = DevblocksPlatform::importGPC($_POST['field_ids'], 'array', array());
-			DAO_CustomFieldValue::handleFormPost('cerberusweb.contexts.datacenter.server', $id, $field_ids);
+			DAO_CustomFieldValue::handleFormPost(CerberusContexts::CONTEXT_SERVER, $id, $field_ids);
 		}
 		
 	}

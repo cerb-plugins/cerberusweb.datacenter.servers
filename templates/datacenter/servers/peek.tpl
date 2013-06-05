@@ -3,6 +3,10 @@
 <input type="hidden" name="a" value="saveServerPeek">
 <input type="hidden" name="view_id" value="{$view_id}">
 {if !empty($model) && !empty($model->id)}<input type="hidden" name="id" value="{$model->id}">{/if}
+{if !empty($link_context)}
+<input type="hidden" name="link_context" value="{$link_context}">
+<input type="hidden" name="link_context_id" value="{$link_context_id}">
+{/if}
 <input type="hidden" name="do_delete" value="0">
 
 <fieldset class="peek">
