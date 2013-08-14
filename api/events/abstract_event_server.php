@@ -49,7 +49,7 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 		@$server_id = $event_model->params['server_id'];
 		$merge_labels = array();
 		$merge_values = array();
-		CerberusContexts::getContext('cerberusweb.contexts.datacenter.server', $server_id, $merge_labels, $merge_values, null, true);
+		CerberusContexts::getContext(CerberusContexts::CONTEXT_SERVER, $server_id, $merge_labels, $merge_values, null, true);
 
 			// Merge
 			CerberusContexts::merge(
@@ -69,6 +69,12 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 		$this->setValues($values);
 	}
 
+	function renderSimulatorTarget($trigger, $event_model) {
+		$context = CerberusContexts::CONTEXT_SERVER;
+		$context_id = $event_model->params['server_id'];
+		DevblocksEventHelper::renderSimulatorTarget($context, $context_id, $trigger, $event_model);
+	}
+	
 	function getValuesContexts($trigger) {
 		$vals = array(
 			'server_id' => array(
