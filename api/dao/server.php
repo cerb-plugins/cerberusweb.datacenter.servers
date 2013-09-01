@@ -29,6 +29,12 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		);
 	}
 	
+	// [TODO] Interface
+	function getDefaultProperties() {
+		return array(
+		);
+	}
+	
 	function getContext($server, &$token_labels, &$token_values, $prefix=null) {
 		if(is_null($prefix))
 			$prefix = 'Server:';
@@ -47,8 +53,16 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			
 		// Token labels
 		$token_labels = array(
+			'_label' => $prefix,
 			'name' => $prefix.$translate->_('common.name'),
 			'record_url' => $prefix.$translate->_('common.url.record'),
+		);
+		
+		// Token types
+		$token_types = array(
+			'_label' => 'context_url',
+			'name' => Model_CustomField::TYPE_SINGLE_LINE,
+			'record_url' => Model_CustomField::TYPE_URL,
 		);
 		
 		// Custom field/fieldset token labels
@@ -59,6 +73,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$token_values = array();
 		
 		$token_values['_context'] = CerberusContexts::CONTEXT_SERVER;
+		$token_values['_types'] = $token_types;
 		
 		// Custom token values
 		if(null != $server) {
