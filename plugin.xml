@@ -144,5 +144,19 @@
 			</params>
 		</extension>
 
-    </extensions> 
+		<!-- REST Controllers -->
+		
+		<extension point="cerberusweb.rest.controller">
+			<id>cerberusweb.datacenter.servers.rest</id>
+			<name>Servers</name>
+			<class>
+				<file>api/rest/servers.php</file>
+				<name>ChRest_Servers</name>
+			</class>
+			<params>
+				<param key="uri" value="servers" />
+			</params>
+		</extension>
+
+	</extensions>
 </plugin>
