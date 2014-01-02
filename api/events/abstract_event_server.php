@@ -101,13 +101,9 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 		$labels['server_link'] = 'Server is linked';
 		$labels['server_watcher_count'] = 'Server watcher count';
 		
-		$types = array(
-			'server_name' => Model_CustomField::TYPE_SINGLE_LINE,
-			
-			'server_link' => null,
-			'server_watcher_count' => null,
-		);
-
+		$types['server_link'] = null;
+		$types['server_watcher_count'] = null;
+		
 		$conditions = $this->_importLabelsTypesAsConditions($labels, $types);
 		
 		return $conditions;
