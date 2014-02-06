@@ -97,6 +97,7 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 	
 	function getConditionExtensions() {
 		$labels = $this->getLabels();
+		$types = $this->getTypes();
 		
 		$labels['server_link'] = 'Server is linked';
 		$labels['server_watcher_count'] = 'Server watcher count';
