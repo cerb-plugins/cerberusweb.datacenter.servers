@@ -206,12 +206,6 @@ class ChRest_Servers extends Extension_RestController implements IExtensionRestC
 			
 			// Sanitize
 			$value = DevblocksPlatform::importVar($value, $type);
-						
-//			switch($field) {
-//				case DAO_Worker::PASSWORD:
-//					$value = md5($value);
-//					break;
-//			}
 			
 			$fields[$field] = $value;
 		}
@@ -225,10 +219,6 @@ class ChRest_Servers extends Extension_RestController implements IExtensionRestC
 		if(is_array($customfields))
 			DAO_CustomFieldValue::formatAndSetFieldValues(CerberusContexts::CONTEXT_SERVER, $id, $customfields, true, true, true);
 		
-		// Check required fields
-//		$reqfields = array(DAO_Address::EMAIL);
-//		$this->_handleRequiredFields($reqfields, $fields);
-
 		// Update
 		DAO_Server::update($id, $fields);
 		$this->getId($id);

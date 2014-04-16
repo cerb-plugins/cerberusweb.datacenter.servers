@@ -69,6 +69,8 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			$server = DAO_Server::get($server);
 		} elseif($server instanceof Model_Server) {
 			// It's what we want already.
+		} elseif(is_array($server)) {
+			$server = Cerb_ORMHelper::recastArrayToModel($server, 'Model_Server');
 		} else {
 			$server = null;
 		}
@@ -76,6 +78,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		// Token labels
 		$token_labels = array(
 			'_label' => $prefix,
+			'id' => $prefix.$translate->_('common.id'),
 			'name' => $prefix.$translate->_('common.name'),
 			'record_url' => $prefix.$translate->_('common.url.record'),
 		);
@@ -83,6 +86,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		// Token types
 		$token_types = array(
 			'_label' => 'context_url',
+			'id' => Model_CustomField::TYPE_NUMBER,
 			'name' => Model_CustomField::TYPE_SINGLE_LINE,
 			'record_url' => Model_CustomField::TYPE_URL,
 		);
@@ -107,6 +111,9 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			$token_values['_label'] = $server->name;
 			$token_values['id'] = $server->id;
 			$token_values['name'] = $server->name;
+			
+			// Custom fields
+			$token_values = $this->_importModelCustomFieldsAsValues($server, $token_values);
 			
 			// URL
 			$url_writer = DevblocksPlatform::getUrlService();
@@ -300,7 +307,7 @@ class DAO_Server extends Cerb_ORMHelper {
 		return $id;
 	}
 	
-	static function update($ids, $fields) {
+	static function update($ids, $fields, $check_deltas=true) {
 		if(!is_array($ids))
 			$ids = array($ids);
 		
@@ -311,16 +318,16 @@ class DAO_Server extends Cerb_ORMHelper {
 			if(empty($batch_ids))
 				continue;
 			
-			// Get state before changes
-			$object_changes = parent::_getUpdateDeltas($batch_ids, $fields, get_class());
-
+			// Send events
+			if($check_deltas) {
+				CerberusContexts::checkpointChanges(CerberusContexts::CONTEXT_SERVER, $batch_ids);
+			}
+			
 			// Make changes
 			parent::_update($batch_ids, 'server', $fields);
 			
 			// Send events
-			if(!empty($object_changes)) {
-				// Local events
-				//self::_processUpdateEvents($object_changes);
+			if($check_deltas) {
 				
 				// Trigger an event about the changes
 				$eventMgr = DevblocksPlatform::getEventService();
@@ -328,7 +335,7 @@ class DAO_Server extends Cerb_ORMHelper {
 					new Model_DevblocksEvent(
 						'dao.server.update',
 						array(
-							'objects' => $object_changes,
+							'fields' => $fields,
 						)
 					)
 				);
@@ -534,7 +541,7 @@ class DAO_Server extends Cerb_ORMHelper {
 			case SearchFields_Server::FULLTEXT_COMMENT_CONTENT:
 				$search = Extension_DevblocksSearchSchema::get(Search_CommentContent::ID);
 				$query = $search->getQueryFromParam($param);
-				$ids = $search->query($query, array('context_crc32' => sprintf("%u", crc32($from_context))), 250);
+				$ids = $search->query($query, array('context_crc32' => sprintf("%u", crc32($from_context))));
 				
 				$from_ids = DAO_Comment::getContextIdsByContextAndIds($from_context, $ids);
 				
@@ -600,7 +607,6 @@ class DAO_Server extends Cerb_ORMHelper {
 		}
 		
 		$results = array();
-		$total = -1;
 		
 		while($row = mysqli_fetch_assoc($rs)) {
 			$result = array();
@@ -611,13 +617,17 @@ class DAO_Server extends Cerb_ORMHelper {
 			$results[$object_id] = $result;
 		}
 
-		// [JAS]: Count all
+		$total = count($results);
+		
 		if($withCounts) {
-			$count_sql =
-				($has_multiple_values ? "SELECT COUNT(DISTINCT server.id) " : "SELECT COUNT(server.id) ").
-				$join_sql.
-				$where_sql;
-			$total = $db->GetOne($count_sql);
+			// We can skip counting if we have a less-than-full single page
+			if(!(0 == $page && $total < $limit)) {
+				$count_sql =
+					($has_multiple_values ? "SELECT COUNT(DISTINCT server.id) " : "SELECT COUNT(server.id) ").
+					$join_sql.
+					$where_sql;
+				$total = $db->GetOne($count_sql);
+			}
 		}
 		
 		mysqli_free_result($rs);
