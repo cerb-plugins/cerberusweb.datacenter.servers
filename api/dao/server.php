@@ -230,9 +230,8 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		
 		// Comments
 		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_SERVER, $id);
-		$last_comment = array_shift($comments);
-		unset($comments);
-		$tpl->assign('last_comment', $last_comment);
+		$comments = array_reverse($comments, true);
+		$tpl->assign('comments', $comments);
 		
 		// Render
 		$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek.tpl');
