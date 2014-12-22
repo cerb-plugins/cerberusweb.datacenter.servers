@@ -4,20 +4,20 @@
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenter assets.</description>
 	<author>Webgroup Media, LLC.</author>
-	<version>1.0.38</version>
+	<version>1.0.39</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.datacenter.servers.html</link>
 	<image>plugin.png</image>
  
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="6.8" max="6.8.99" />
+		<app_version min="6.8" max="6.9.99" />
 	</requires>
  
 	<!-- Plugin Dependencies -->
 	
 	<dependencies>
-		<require plugin_id="cerberusweb.core" version="6.1.0" />
+		<require plugin_id="cerberusweb.core" version="6.8.0" />
 	</dependencies>
 
 	<!-- Patches -->
