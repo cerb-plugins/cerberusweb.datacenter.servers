@@ -56,6 +56,12 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		
 		$properties = array();
 		
+		$properties['id'] = array(
+			'label' => mb_convert_case($translate->_('common.id'), MB_CASE_UPPER),
+			'type' => Model_CustomField::TYPE_NUMBER,
+			'value' => $server->id
+		);
+		
 		// Custom Fields
 
 		@$values = array_shift(DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_SERVER, $server->id)) or array();
