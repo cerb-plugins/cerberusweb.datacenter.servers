@@ -78,16 +78,20 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		// Token labels
 		$token_labels = array(
 			'_label' => $prefix,
+			'created' => $prefix.$translate->_('common.created'),
 			'id' => $prefix.$translate->_('common.id'),
 			'name' => $prefix.$translate->_('common.name'),
+			'updated' => $prefix.$translate->_('common.updated'),
 			'record_url' => $prefix.$translate->_('common.url.record'),
 		);
 		
 		// Token types
 		$token_types = array(
 			'_label' => 'context_url',
+			'created' => Model_CustomField::TYPE_DATE,
 			'id' => Model_CustomField::TYPE_NUMBER,
 			'name' => Model_CustomField::TYPE_SINGLE_LINE,
+			'updated' => Model_CustomField::TYPE_DATE,
 			'record_url' => Model_CustomField::TYPE_URL,
 		);
 		
@@ -109,8 +113,10 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		if(null != $server) {
 			$token_values['_loaded'] = true;
 			$token_values['_label'] = $server->name;
+			$token_values['created'] = $server->created;
 			$token_values['id'] = $server->id;
 			$token_values['name'] = $server->name;
+			$token_values['updated'] = $server->updated;
 			
 			// Custom fields
 			$token_values = $this->_importModelCustomFieldsAsValues($server, $token_values);
@@ -241,12 +247,22 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		// [TODO] Translate
 	
 		$keys = array(
+			'created' => array(
+				'label' => 'Created Date',
+				'type' => Model_CustomField::TYPE_DATE,
+				'param' => SearchFields_Server::CREATED,
+			),
 			'name' => array(
 				'label' => 'Name',
 				'type' => Model_CustomField::TYPE_SINGLE_LINE,
 				'param' => SearchFields_Server::NAME,
 				'required' => true,
 				'force_match' => true,
+			),
+			'updated' => array(
+				'label' => 'Updated Date',
+				'type' => Model_CustomField::TYPE_DATE,
+				'param' => SearchFields_Server::UPDATED,
 			),
 		);
 	
@@ -291,8 +307,10 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 class DAO_Server extends Cerb_ORMHelper {
 	const CACHE_ALL = 'cerberus_cache_servers_all';
 	
+	const CREATED = 'created';
 	const ID = 'id';
 	const NAME = 'name';
+	const UPDATED = 'updated';
 
 	static function create($fields) {
 		$db = DevblocksPlatform::getDatabaseService();
@@ -300,6 +318,9 @@ class DAO_Server extends Cerb_ORMHelper {
 		$sql = "INSERT INTO server () VALUES ()";
 		$db->Execute($sql);
 		$id = $db->LastInsertId();
+		
+		if(!isset($fields[self::CREATED]))
+			$fields[self::CREATED] = time();
 		
 		self::update($id, $fields);
 		
@@ -309,6 +330,9 @@ class DAO_Server extends Cerb_ORMHelper {
 	static function update($ids, $fields, $check_deltas=true) {
 		if(!is_array($ids))
 			$ids = array($ids);
+		
+		if(!isset($fields[self::UPDATED]))
+			$fields[self::UPDATED] = time();
 		
 		// Make a diff for the requested objects in batches
 		
@@ -348,6 +372,9 @@ class DAO_Server extends Cerb_ORMHelper {
 	}
 	
 	static function updateWhere($fields, $where) {
+		if(!isset($fields[self::UPDATED]))
+			$fields[self::UPDATED] = time();
+		
 		parent::_updateWhere('server', $fields, $where);
 		self::clearCache();
 	}
@@ -375,7 +402,7 @@ class DAO_Server extends Cerb_ORMHelper {
 		list($where_sql, $sort_sql, $limit_sql) = self::_getWhereSQL($where, $sortBy, $sortAsc, $limit);
 		
 		// SQL
-		$sql = "SELECT id, name ".
+		$sql = "SELECT id, name, created, updated ".
 			"FROM server ".
 			$where_sql.
 			$sort_sql.
@@ -407,8 +434,10 @@ class DAO_Server extends Cerb_ORMHelper {
 		
 		while($row = mysqli_fetch_assoc($rs)) {
 			$object = new Model_Server();
-			$object->id = $row['id'];
+			$object->created = intval($row['created']);
+			$object->id = intval($row['id']);
 			$object->name = $row['name'];
+			$object->updated = intval($row['updated']);
 			$objects[$object->id] = $object;
 		}
 		
@@ -475,9 +504,13 @@ class DAO_Server extends Cerb_ORMHelper {
 		
 		$select_sql = sprintf("SELECT ".
 			"server.id as %s, ".
-			"server.name as %s ",
+			"server.created as %s, ".
+			"server.name as %s, ".
+			"server.updated as %s ",
 				SearchFields_Server::ID,
-				SearchFields_Server::NAME
+				SearchFields_Server::CREATED,
+				SearchFields_Server::NAME,
+				SearchFields_Server::UPDATED
 			);
 			
 		$join_sql = "FROM server ".
@@ -655,8 +688,10 @@ class DAO_Server extends Cerb_ORMHelper {
 };
 
 class SearchFields_Server implements IDevblocksSearchFields {
+	const CREATED = 's_created';
 	const ID = 's_id';
 	const NAME = 's_name';
+	const UPDATED = 's_updated';
 	
 	const VIRTUAL_CONTEXT_LINK = '*_context_link';
 	const VIRTUAL_HAS_FIELDSET = '*_has_fieldset';
@@ -675,8 +710,10 @@ class SearchFields_Server implements IDevblocksSearchFields {
 		$translate = DevblocksPlatform::getTranslationService();
 		
 		$columns = array(
+			self::CREATED => new DevblocksSearchField(self::CREATED, 'server', 'created', $translate->_('common.created'), Model_CustomField::TYPE_DATE),
 			self::ID => new DevblocksSearchField(self::ID, 'server', 'id', $translate->_('common.id')),
 			self::NAME => new DevblocksSearchField(self::NAME, 'server', 'name', $translate->_('common.name'), Model_CustomField::TYPE_SINGLE_LINE),
+			self::UPDATED => new DevblocksSearchField(self::UPDATED, 'server', 'updated', $translate->_('common.updated'), Model_CustomField::TYPE_DATE),
 			
 			self::VIRTUAL_CONTEXT_LINK => new DevblocksSearchField(self::VIRTUAL_CONTEXT_LINK, '*', 'context_link', $translate->_('common.links'), null),
 			self::VIRTUAL_HAS_FIELDSET => new DevblocksSearchField(self::VIRTUAL_HAS_FIELDSET, '*', 'has_fieldset', $translate->_('common.fieldset'), null),
@@ -709,8 +746,10 @@ class SearchFields_Server implements IDevblocksSearchFields {
 };
 
 class Model_Server {
+	public $created;
 	public $id;
 	public $name;
+	public $updated;
 };
 
 class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IAbstractView_QuickSearch {
@@ -727,6 +766,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 
 		$this->view_columns = array(
 			SearchFields_Server::NAME,
+			SearchFields_Server::UPDATED,
 		);
 		
 		// Filter cols
@@ -840,6 +880,11 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 					'type' => DevblocksSearchCriteria::TYPE_FULLTEXT,
 					'options' => array('param_key' => SearchFields_Server::FULLTEXT_COMMENT_CONTENT),
 				),
+			'created' => 
+				array(
+					'type' => DevblocksSearchCriteria::TYPE_DATE,
+					'options' => array('param_key' => SearchFields_Server::CREATED),
+				),
 			'id' => 
 				array(
 					'type' => DevblocksSearchCriteria::TYPE_NUMBER,
@@ -849,6 +894,11 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 				array(
 					'type' => DevblocksSearchCriteria::TYPE_TEXT,
 					'options' => array('param_key' => SearchFields_Server::NAME, 'match' => DevblocksSearchCriteria::OPTION_TEXT_PARTIAL),
+				),
+			'updated' => 
+				array(
+					'type' => DevblocksSearchCriteria::TYPE_DATE,
+					'options' => array('param_key' => SearchFields_Server::UPDATED),
 				),
 			'watchers' => 
 				array(
@@ -923,7 +973,8 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__bool.tpl');
 				break;
 				
-			case 'placeholder_date':
+			case SearchFields_Server::CREATED:
+			case SearchFields_Server::UPDATED:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__date.tpl');
 				break;
 				
@@ -1001,7 +1052,8 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 				$criteria = new DevblocksSearchCriteria($field,$oper,$value);
 				break;
 				
-			case 'placeholder_date':
+			case SearchFields_Server::CREATED:
+			case SearchFields_Server::UPDATED:
 				$criteria = $this->_doSetCriteriaDate($field, $oper);
 				break;
 				

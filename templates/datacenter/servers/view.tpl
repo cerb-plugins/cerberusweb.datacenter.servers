@@ -82,8 +82,8 @@
 		{foreach from=$view->view_columns item=column name=columns}
 			{if substr($column,0,3)=="cf_"}
 				{include file="devblocks:cerberusweb.core::internal/custom_fields/view/cell_renderer.tpl"}
-			{elseif $column=="w_created"}
-				<td><abbr title="{$result.$column|devblocks_date}">{$result.w_created|devblocks_prettytime}</abbr>&nbsp;</td>
+			{elseif in_array($column, ["s_created", "s_updated"])}
+				<td><abbr title="{$result.$column|devblocks_date}">{$result.$column|devblocks_prettytime}</abbr>&nbsp;</td>
 			{else}
 				<td>{$result.$column}</td>
 			{/if}
