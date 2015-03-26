@@ -74,7 +74,7 @@
 {include file="devblocks:cerberusweb.core::internal/macros/behavior/scheduled_behavior_profile.tpl" context=$page_context context_id=$page_context_id}
 </div>
 
-<div id="datacenterServerTabs">
+<div id="profileServerTabs">
 	<ul>
 		{$tabs = [activity,comments, links]}
 		
@@ -90,28 +90,23 @@
 </div> 
 <br>
 
-{$selected_tab_idx=0}
-{foreach from=$tabs item=tab_label name=tabs}
-	{if $tab_label==$selected_tab}{$selected_tab_idx = $smarty.foreach.tabs.index}{/if}
-{/foreach}
-
 <script type="text/javascript">
-	$(function() {
-		var tabOptions = Devblocks.getDefaultjQueryUiTabOptions();
-		tabOptions.active = {$selected_tab_idx};
-		
-		var tabs = $("#datacenterServerTabs").tabs(tabOptions);
-		
-		$('#btnDatacenterServerEdit').bind('click', function() {
-			$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'550');
-			$popup.one('datacenter_server_save', function(event) {
-				event.stopPropagation();
-				document.location.href = '{devblocks_url}c=profiles&type=server&id={$page_context_id}{/devblocks_url}';
-			});
-		})
-	});
+$(function() {
+	var tabOptions = Devblocks.getDefaultjQueryUiTabOptions();
+	tabOptions.active = Devblocks.getjQueryUiTabSelected('profileServerTabs');
 	
-	{include file="devblocks:cerberusweb.core::internal/macros/display/menu_script.tpl" selector_button=null selector_menu=null}
+	var tabs = $("#profileServerTabs").tabs(tabOptions);
+	
+	$('#btnDatacenterServerEdit').bind('click', function() {
+		$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'550');
+		$popup.one('datacenter_server_save', function(event) {
+			event.stopPropagation();
+			document.location.href = '{devblocks_url}c=profiles&type=server&id={$page_context_id}{/devblocks_url}';
+		});
+	})
+});
+
+{include file="devblocks:cerberusweb.core::internal/macros/display/menu_script.tpl" selector_button=null selector_menu=null}
 </script>
 
 <script type="text/javascript">
@@ -138,7 +133,7 @@ $(document).keypress(function(event) {
 		case 58:  // (0) tab cycle
 			try {
 				idx = event.which-49;
-				$tabs = $("#datacenterServerTabs").tabs();
+				$tabs = $("#profileServerTabs").tabs();
 				$tabs.tabs('option', 'active', idx);
 			} catch(ex) { } 
 			break;

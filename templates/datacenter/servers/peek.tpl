@@ -51,8 +51,7 @@
 
 <fieldset class="peek">
 	<legend>{'common.comment'|devblocks_translate|capitalize}</legend>
-	<div class="cerb-form-hint">{'comment.notify.at_mention'|devblocks_translate}</div>
-	<textarea name="comment" rows="5" cols="45" style="width:98%;"></textarea>
+	<textarea name="comment" rows="5" cols="45" style="width:98%;" placeholder="{'comment.notify.at_mention'|devblocks_translate}"></textarea>
 </fieldset>
 
 <button type="button" onclick="genericAjaxPopupPostCloseReloadView(null,'frmServer','{$view_id}', false, 'datacenter_server_save');"><span class="cerb-sprite2 sprite-tick-circle"></span> {'common.save_changes'|devblocks_translate|capitalize}</button>
@@ -97,8 +96,10 @@
 
 		$textarea.atwho({
 			at: '@',
-			{literal}tpl: '<li data-value="@${at_mention}">${name} <small style="margin-left:10px;">${title}</small></li>',{/literal}
+			{literal}displayTpl: '<li>${name} <small style="margin-left:10px;">${title}</small> <small style="margin-left:10px;">@${at_mention}</small></li>',{/literal}
+			{literal}insertTpl: '@${at_mention}',{/literal}
 			data: atwho_workers,
+			searchKey: '_index',
 			limit: 10
 		});
 	});

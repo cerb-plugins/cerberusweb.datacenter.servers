@@ -14,12 +14,12 @@ if(!isset($tables['server'])) {
 list($columns, $indexes) = $db->metaTable('server');
 
 if(!isset($columns['created'])) {
-	$db->Execute("ALTER TABLE server ADD COLUMN created INT UNSIGNED DEFAULT 0");
-	$db->Execute(sprintf("UPDATE server SET created=%d", time()));
+	$db->ExecuteMaster("ALTER TABLE server ADD COLUMN created INT UNSIGNED DEFAULT 0");
+	$db->ExecuteMaster(sprintf("UPDATE server SET created=%d", time()));
 }
 
 if(!isset($columns['updated'])) {
-	$db->Execute("ALTER TABLE server ADD COLUMN updated INT UNSIGNED DEFAULT 0");
+	$db->ExecuteMaster("ALTER TABLE server ADD COLUMN updated INT UNSIGNED DEFAULT 0");
 }
 
 return TRUE;

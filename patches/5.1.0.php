@@ -14,7 +14,7 @@ if(!isset($tables['server'])) {
 			PRIMARY KEY (id)
 		) ENGINE=%s;
 	", APP_DB_ENGINE);
-	$db->Execute($sql);
+	$db->ExecuteMaster($sql);
 
 	$tables['server'] = 'server';
 }

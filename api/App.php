@@ -115,6 +115,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		// View
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
 		$view = C4_AbstractViewLoader::getView($view_id);
+		$view->setAutoPersist(false);
 		
 		// Scheduled behavior
 		@$behavior_id = DevblocksPlatform::importGPC($_POST['behavior_id'],'string','');
@@ -167,6 +168,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		
 		// Loop through view and get IDs
 		$view = C4_AbstractViewLoader::getView($view_id);
+		$view->setAutoPersist(false);
 
 		// Page start
 		@$explore_from = DevblocksPlatform::importGPC($_REQUEST['explore_from'],'integer',0);
