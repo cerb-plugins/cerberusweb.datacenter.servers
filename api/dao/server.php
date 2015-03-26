@@ -417,6 +417,9 @@ class DAO_Server extends Cerb_ORMHelper {
 	 * @param integer $id
 	 * @return Model_Server	 */
 	static function get($id) {
+		if(empty($id))
+			return null;
+		
 		$objects = self::getAll();
 		
 		if(isset($objects[$id]))
