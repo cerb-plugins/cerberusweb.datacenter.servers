@@ -4,14 +4,14 @@
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenter assets.</description>
 	<author>Webgroup Media, LLC.</author>
-	<version>1.0.51</version>
+	<version>1.0.52</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.datacenter.servers.html</link>
 	<image>plugin.png</image>
  
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="7.0.3" max="7.0.99" />
+		<app_version min="7.1" max="7.1.99" />
 	</requires>
  
 	<!-- Plugin Dependencies -->
@@ -77,6 +77,12 @@
 				<name>Context_Server</name>
 			</class>
 			<params>
+				<param key="names">
+					<value>
+						<data key="server" value="singular" />
+						<data key="servers" value="plural" />
+					</value>
+				</param>
 				<param key="alias" value="server" />
 				<param key="dao_class" value="DAO_Server" />
 				<param key="view_class" value="View_Server" />
