@@ -152,7 +152,6 @@ class Page_Datacenter extends CerberusPageExtension {
 		}
 		
 		$view->doBulkUpdate($filter, $do, $ids);
-		
 		$view->render();
 		return;
 	}
