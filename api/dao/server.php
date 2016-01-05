@@ -209,7 +209,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 	}
 	
 	function renderPeekPopup($context_id=0, $view_id='', $edit=false) {
-		$id = $context_id; // [TODO] Cleanup
+		$id = $context_id;
 		
 		$tpl = DevblocksPlatform::getTemplateService();
 		$tpl->assign('view_id', $view_id);
@@ -219,26 +219,58 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		if(empty($id) || null == ($model = DAO_Server::get($id)))
 			$model = new Model_Server();
 		
-		$tpl->assign('model', $model);
-		
-		// Custom fields
-		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER, false);
-		$tpl->assign('custom_fields', $custom_fields);
-
-		$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_SERVER, $id);
-		if(isset($custom_field_values[$id]))
-			$tpl->assign('custom_field_values', $custom_field_values[$id]);
-		
-		$types = Model_CustomField::getTypes();
-		$tpl->assign('types', $types);
-		
-		// Comments
-		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_SERVER, $id);
-		$comments = array_reverse($comments, true);
-		$tpl->assign('comments', $comments);
-		
-		// Render
-		$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek.tpl');
+		if(empty($context_id) || $edit) {
+			$tpl->assign('model', $model);
+			
+			// Custom fields
+			$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER, false);
+			$tpl->assign('custom_fields', $custom_fields);
+	
+			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_SERVER, $id);
+			if(isset($custom_field_values[$id]))
+				$tpl->assign('custom_field_values', $custom_field_values[$id]);
+			
+			$types = Model_CustomField::getTypes();
+			$tpl->assign('types', $types);
+			
+			// Render
+			$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek_edit.tpl');
+			
+		} else {
+			// Counts
+			$activity_counts = array(
+				'comments' => DAO_Comment::count(CerberusContexts::CONTEXT_SERVER, $context_id),
+				'domains' => DAO_Domain::countByServerId($context_id),
+			);
+			$tpl->assign('activity_counts', $activity_counts);
+			
+			// Links
+			$links = array(
+				CerberusContexts::CONTEXT_SERVER => array(
+					$context_id => 
+						DAO_ContextLink::getContextLinkCounts(
+							CerberusContexts::CONTEXT_SERVER,
+							$context_id,
+							array(CerberusContexts::CONTEXT_WORKER, CerberusContexts::CONTEXT_CUSTOM_FIELDSET)
+						),
+				),
+			);
+			$tpl->assign('links', $links);
+			
+			// Dictionary
+			$labels = array();
+			$values = array();
+			CerberusContexts::getContext(CerberusContexts::CONTEXT_SERVER, $model, $labels, $values, '', true, false);
+			$dict = DevblocksDictionaryDelegate::instance($values);
+			$tpl->assign('dict', $dict);
+			$tpl->assign('properties',
+				array(
+					'updated',
+				)
+			);
+			
+			$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek.tpl');
+		}
 	}
 	
 	function importGetKeys() {
@@ -434,6 +466,23 @@ class DAO_Server extends Cerb_ORMHelper {
 		
 		if(isset($objects[$id]))
 			return $objects[$id];
+		
+		return null;
+	}
+	
+	static function getByName($name) {
+		if(empty($name))
+			return null;
+		
+		$results = self::getWhere(
+			sprintf("%s = %s", self::escape(DAO_Server::NAME), self::qstr($name)),
+			null,
+			null,
+			1
+		);
+		
+		if(is_array($results) && !empty($results))
+			return array_shift($results);
 		
 		return null;
 	}
@@ -776,7 +825,6 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 		$this->renderSortAsc = true;
 
 		$this->view_columns = array(
-			SearchFields_Server::NAME,
 			SearchFields_Server::UPDATED,
 		);
 		

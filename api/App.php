@@ -10,68 +10,111 @@ class Page_Datacenter extends CerberusPageExtension {
 	function render() {
 	}
 	
-	function saveServerPeekAction() {
-		$active_worker = CerberusApplication::getActiveWorker();
-		
+	function savePeekJsonAction() {
 		@$id = DevblocksPlatform::importGPC($_REQUEST['id'],'integer',0);
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string','');
-		@$name = DevblocksPlatform::importGPC($_REQUEST['name'],'string','');
-		@$comment = DevblocksPlatform::importGPC($_REQUEST['comment'], 'string', '');
 		@$do_delete = DevblocksPlatform::importGPC($_REQUEST['do_delete'],'integer',0);
 		
-		if($do_delete) { // delete
-			DAO_Server::delete($id);
-			
-		} else { // create | update
-			$fields = array(
-				DAO_Server::NAME => $name,
-			);
-			
-			// Create/Update
-			if(empty($id)) {
-				$id = DAO_Server::create($fields);
+		$active_worker = CerberusApplication::getActiveWorker();
+		
+		header('Content-Type: application/json; charset=' . LANG_CHARSET_CODE);
+		
+		try {
+			if($do_delete) { // delete
+				if(!$active_worker->is_superuser)
+					throw new Exception_DevblocksAjaxValidationError("You don't have permission to delete this record.");
 				
-				// Watchers
-				@$add_watcher_ids = DevblocksPlatform::sanitizeArray(DevblocksPlatform::importGPC($_REQUEST['add_watcher_ids'],'array',array()),'integer',array('unique','nonzero'));
-				if(!empty($add_watcher_ids))
-					CerberusContexts::addWatchers(CerberusContexts::CONTEXT_SERVER, $id, $add_watcher_ids);
+				DAO_Server::delete($id);
 				
-				// View marquee
-				if(!empty($id) && !empty($view_id)) {
-					C4_AbstractView::setMarqueeContextCreated($view_id, CerberusContexts::CONTEXT_SERVER, $id);
+				echo json_encode(array(
+					'status' => true,
+					'id' => $id,
+					'view_id' => $view_id,
+				));
+				return;
+				
+			} else { // create | update
+				@$name = DevblocksPlatform::importGPC($_REQUEST['name'],'string','');
+				@$comment = DevblocksPlatform::importGPC($_REQUEST['comment'], 'string', '');
+				
+				if(empty($name))
+					throw new Exception_DevblocksAjaxValidationError("A 'Name' is required.", 'name');
+				
+				$fields = array(
+					DAO_Server::NAME => $name,
+				);
+				
+				// Create/Update
+				if(empty($id)) {
+					// Check for dupes
+					if(false != DAO_Server::getByName($name))
+						throw new Exception_DevblocksAjaxValidationError(sprintf("A server record already exists with the name '%s'.", $name), 'name');
+					
+					if(false == ($id = DAO_Server::create($fields)))
+						throw new Exception_DevblocksAjaxValidationError("There was an error creating the record.");
+					
+					// View marquee
+					if(!empty($id) && !empty($view_id)) {
+						C4_AbstractView::setMarqueeContextCreated($view_id, CerberusContexts::CONTEXT_SERVER, $id);
+					}
+					
+				} else {
+					DAO_Server::update($id, $fields);
 				}
 				
-			} else {
-				DAO_Server::update($id, $fields);
+				// If we're adding a comment
+				if(!empty($comment)) {
+					$also_notify_worker_ids = array_keys(CerberusApplication::getWorkersByAtMentionsText($comment));
+									
+					$fields = array(
+						DAO_Comment::CREATED => time(),
+						DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_SERVER,
+						DAO_Comment::CONTEXT_ID => $id,
+						DAO_Comment::COMMENT => $comment,
+						DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
+						DAO_Comment::OWNER_CONTEXT_ID => $active_worker->id,
+					);
+					$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
+				}
+				
+				// Context Link (if given)
+				@$link_context = DevblocksPlatform::importGPC($_REQUEST['link_context'],'string','');
+				@$link_context_id = DevblocksPlatform::importGPC($_REQUEST['link_context_id'],'integer','');
+				if(!empty($id) && !empty($link_context) && !empty($link_context_id)) {
+					DAO_ContextLink::setLink(CerberusContexts::CONTEXT_SERVER, $id, $link_context, $link_context_id);
+				}
+				
+				// Custom field saves
+				@$field_ids = DevblocksPlatform::importGPC($_POST['field_ids'], 'array', array());
+				DAO_CustomFieldValue::handleFormPost(CerberusContexts::CONTEXT_SERVER, $id, $field_ids);
 			}
 			
-			// If we're adding a comment
-			if(!empty($comment)) {
-				$also_notify_worker_ids = array_keys(CerberusApplication::getWorkersByAtMentionsText($comment));
-								
-				$fields = array(
-					DAO_Comment::CREATED => time(),
-					DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_SERVER,
-					DAO_Comment::CONTEXT_ID => $id,
-					DAO_Comment::COMMENT => $comment,
-					DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
-					DAO_Comment::OWNER_CONTEXT_ID => $active_worker->id,
-				);
-				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
-			}
-			
-			// Context Link (if given)
-			@$link_context = DevblocksPlatform::importGPC($_REQUEST['link_context'],'string','');
-			@$link_context_id = DevblocksPlatform::importGPC($_REQUEST['link_context_id'],'integer','');
-			if(!empty($id) && !empty($link_context) && !empty($link_context_id)) {
-				DAO_ContextLink::setLink(CerberusContexts::CONTEXT_SERVER, $id, $link_context, $link_context_id);
-			}
-			
-			// Custom field saves
-			@$field_ids = DevblocksPlatform::importGPC($_POST['field_ids'], 'array', array());
-			DAO_CustomFieldValue::handleFormPost(CerberusContexts::CONTEXT_SERVER, $id, $field_ids);
-		}
+			echo json_encode(array(
+				'status' => true,
+				'id' => $id,
+				'label' => $name,
+				'view_id' => $view_id,
+			));
+			return;
 		
+		} catch (Exception_DevblocksAjaxValidationError $e) {
+				echo json_encode(array(
+					'status' => false,
+					'id' => $id,
+					'error' => $e->getMessage(),
+					'field' => $e->getFieldName(),
+				));
+				return;
+			
+		} catch (Exception $e) {
+				echo json_encode(array(
+					'status' => false,
+					'id' => $id,
+					'error' => 'An error occurred.',
+				));
+				return;
+			
+		}
 	}
 	
 	function showServerBulkUpdateAction() {

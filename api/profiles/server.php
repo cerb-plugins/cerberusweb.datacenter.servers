@@ -26,15 +26,7 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		$stack = $request->path;
 		@array_shift($stack); // profiles
 		@array_shift($stack); // server
-		@$identifier = array_shift($stack);
-		
-		if(is_numeric($identifier)) {
-			$id = intval($identifier);
-		} elseif(preg_match("#.*?\-(\d+)$#", $identifier, $matches)) {
-			@$id = intval($matches[1]);
-		} else {
-			@$id = intval($identifier);
-		}
+		@$id = intval(array_shift($stack));
 		
 		if(null != ($server = DAO_Server::get($id)))
 			$tpl->assign('server', $server);
@@ -48,10 +40,16 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		
 		$properties = array();
 		
-		$properties['id'] = array(
-			'label' => mb_convert_case($translate->_('common.id'), MB_CASE_UPPER),
-			'type' => Model_CustomField::TYPE_NUMBER,
-			'value' => $server->id
+		$properties['created'] = array(
+			'label' => ucfirst($translate->_('common.created')),
+			'type' => Model_CustomField::TYPE_DATE,
+			'value' => $server->created,
+		);
+		
+		$properties['updated'] = array(
+			'label' => ucfirst($translate->_('common.updated')),
+			'type' => Model_CustomField::TYPE_DATE,
+			'value' => $server->updated,
 		);
 		
 		// Custom Fields
