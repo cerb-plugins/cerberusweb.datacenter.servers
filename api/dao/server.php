@@ -1,5 +1,5 @@
 <?php
-class Context_Server extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
+class Context_Server extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport, IDevblocksContextAutocomplete {
 	function getRandom() {
 		return DAO_Server::random();
 	}
@@ -11,6 +11,33 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$url_writer = DevblocksPlatform::getUrlService();
 		$url = $url_writer->writeNoProxy('c=profiles&type=server&id='.$context_id, true);
 		return $url;
+	}
+	
+	function autocomplete($term) {
+		$results = DAO_Server::autocomplete($term);
+		$list = array();
+		
+		if(stristr('none', $term) || stristr('empty', $term) || stristr('null', $term)) {
+			$empty = new stdClass();
+			$empty->label = '(no server)';
+			$empty->value = '0';
+			$empty->meta = array('desc' => 'Clear the server');
+			$list[] = $empty;
+		}
+		
+		if(is_array($results))
+		foreach($results as $server_id => $server){
+			$entry = new stdClass();
+			$entry->label = $server->name;
+			$entry->value = intval($server_id);
+			
+			$meta = array();
+			
+			$entry->meta = $meta;
+			$list[] = $entry;
+		}
+		
+		return $list;
 	}
 	
 	function getMeta($context_id) {
@@ -675,6 +702,25 @@ class DAO_Server extends Cerb_ORMHelper {
 				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $args['join_sql'], $args['where_sql'], $args['tables']);
 				break;
 		}
+	}
+	
+	static function autocomplete($term) {
+		$db = DevblocksPlatform::getDatabaseService();
+		$ids = array();
+		
+		$results = $db->GetArraySlave(sprintf("SELECT id ".
+			"FROM server ".
+			"WHERE name LIKE %s",
+			$db->qstr($term.'%')
+		));
+		
+		
+		if(is_array($results))
+		foreach($results as $row) {
+			$ids[] = $row['id'];
+		}
+		
+		return DAO_Server::getIds($ids);
 	}
 	
 	/**
