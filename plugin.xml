@@ -120,6 +120,25 @@
 				</param>
 			</params>
 		</extension>
+		
+		<!-- VA Actions -->
+		
+		<extension point="devblocks.event.action">
+			<id>va.action.create_server</id>
+			<name>Create Server</name>
+			<class>
+				<file>api/App.php</file>
+				<name>VaAction_CreateServer</name>
+			</class>
+			<params>
+				<param key="label" value="Create server" />
+				<param key="events">
+					<value>
+						<data key="*" />
+					</value>
+				</param>
+			</params>
+		</extension>
 
 		<!-- Pages -->
 		
