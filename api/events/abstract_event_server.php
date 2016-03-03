@@ -13,9 +13,7 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 			// Pull the latest record
 			list($results) = DAO_Server::search(
 				array(),
-				array(
-					//new DevblocksSearchCriteria(SearchFields_Server::IS_CLOSED,'=',0),
-				),
+				array(),
 				10,
 				0,
 				SearchFields_Server::ID,
@@ -308,8 +306,6 @@ abstract class AbstractEvent_Server extends Extension_DevblocksEvent {
 			case 'create_ticket':
 				return DevblocksEventHelper::simulateActionCreateTicket($params, $dict, 'server_id');
 				break;
-				
-				
 				
 			case 'send_email':
 				return DevblocksEventHelper::simulateActionSendEmail($params, $dict);
