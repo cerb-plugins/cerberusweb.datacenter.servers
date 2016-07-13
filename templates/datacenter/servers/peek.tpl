@@ -10,8 +10,8 @@
 			{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context=$peek_context context_id=$dict->id full=true}
 			
 			<button type="button" class="cerb-peek-edit" data-context="{$peek_context}" data-context-id="{$dict->id}" data-edit="true"><span class="glyphicons glyphicons-cogwheel"></span> {'common.edit'|devblocks_translate|capitalize}</button>
-			
 			{if $dict->id}<button type="button" class="cerb-peek-profile"><span class="glyphicons glyphicons-nameplate"></span> {'common.profile'|devblocks_translate|capitalize}</button>{/if}
+			{if $dict->id}<button type="button" class="cerb-peek-comments-add" data-context="{$peek_context}" data-context-id="{$dict->id}"><span class="glyphicons glyphicons-conversation"></span> {'common.comment'|devblocks_translate|capitalize}</button>{/if}
 		</div>
 	</div>
 </div>
@@ -47,11 +47,15 @@
 
 {include file="devblocks:cerberusweb.core::internal/peek/peek_links.tpl" links=$links}
 
+{include file="devblocks:cerberusweb.core::internal/peek/card_timeline_pager.tpl"}
+
 <script type="text/javascript">
 $(function() {
 	var $div = $('#{$div_id}');
 	var $popup = genericAjaxPopupFind($div);
 	var $layer = $popup.attr('data-layer');
+	
+	var $timeline = {$timeline_json|default:'{}' nofilter};
 	
 	$popup.one('popup_open',function(event,ui) {
 		// Title
@@ -68,6 +72,14 @@ $(function() {
 			})
 			.on('cerb-peek-deleted', function(e) {
 				genericAjaxPopupClose($layer);
+			})
+			;
+		
+		// Comments
+		$popup.find('button.cerb-peek-comments-add')
+			.cerbCommentTrigger()
+			.on('cerb-comment-saved', function() {
+				genericAjaxPopup($layer,'c=internal&a=showPeekPopup&context={$peek_context}&context_id={$dict->id}&view_id={$view_id}','reuse',false,'50%');
 			})
 			;
 		
@@ -88,6 +100,9 @@ $(function() {
 				document.location='{devblocks_url}c=profiles&type=server&id={$dict->id}-{$dict->_label|devblocks_permalink}{/devblocks_url}';
 			}
 		});
+		
+		// Timeline
+		{include file="devblocks:cerberusweb.core::internal/peek/card_timeline_script.tpl"}
 	});
 });
 </script>

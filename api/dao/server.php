@@ -284,6 +284,12 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			);
 			$tpl->assign('links', $links);
 			
+			// Timeline
+			if($context_id) {
+				$timeline_json = Page_Profiles::getTimelineJson(Extension_DevblocksContext::getTimelineComments(CerberusContexts::CONTEXT_SERVER, $context_id));
+				$tpl->assign('timeline_json', $timeline_json);
+			}
+			
 			// Dictionary
 			$labels = array();
 			$values = array();
