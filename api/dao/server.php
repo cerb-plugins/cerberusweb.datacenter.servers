@@ -79,9 +79,9 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		return $labels;
 	}
 	
-	// [TODO] Interface
 	function getDefaultProperties() {
 		return array(
+			'updated'
 		);
 	}
 	
@@ -290,17 +290,19 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 				$tpl->assign('timeline_json', $timeline_json);
 			}
 			
+			// Context
+			if(false == ($context_ext = Extension_DevblocksContext::get(CerberusContexts::CONTEXT_SERVER)))
+				return;
+			
 			// Dictionary
 			$labels = array();
 			$values = array();
 			CerberusContexts::getContext(CerberusContexts::CONTEXT_SERVER, $model, $labels, $values, '', true, false);
 			$dict = DevblocksDictionaryDelegate::instance($values);
 			$tpl->assign('dict', $dict);
-			$tpl->assign('properties',
-				array(
-					'updated',
-				)
-			);
+			
+			$properties = $context_ext->getCardProperties();
+			$tpl->assign('properties', $properties);
 			
 			$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek.tpl');
 		}

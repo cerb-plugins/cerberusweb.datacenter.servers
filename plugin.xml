@@ -4,7 +4,7 @@
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenter assets.</description>
 	<author>Webgroup Media, LLC.</author>
-	<version>1.1.4</version>
+	<version>1.1.5</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.datacenter.servers.html</link>
 	<image>plugin.png</image>
  
@@ -88,6 +88,7 @@
 				<param key="view_class" value="View_Server" />
 				<param key="options">
 					<value>
+						<data key="cards" />
 						<data key="custom_fields" />
 						<data key="create" />
 						<data key="find" />
