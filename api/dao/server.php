@@ -444,6 +444,54 @@ class DAO_Server extends Cerb_ORMHelper {
 		self::clearCache();
 	}
 	
+	/**
+	 * @param Model_ContextBulkUpdate $update
+	 * @return boolean
+	 */
+	static function bulkUpdate(Model_ContextBulkUpdate $update) {
+		$do = $update->actions;
+		$ids = $update->context_ids;
+
+		// Make sure we have actions
+		if(empty($ids) || empty($do))
+			return false;
+		
+		$update->markInProgress();
+		
+		$change_fields = array();
+		$custom_fields = array();
+
+		if(is_array($do))
+		foreach($do as $k => $v) {
+			switch($k) {
+				default:
+					// Custom fields
+					if(substr($k,0,3)=="cf_") {
+						$custom_fields[substr($k,3)] = $v;
+					}
+					break;
+			}
+		}
+		
+		if(!empty($change_fields))
+			DAO_Server::update($ids, $change_fields);
+
+		// Custom Fields
+		if(!empty($custom_fields))
+			C4_AbstractView::_doBulkSetCustomFields(CerberusContexts::CONTEXT_SERVER, $custom_fields, $ids);
+		
+		// Scheduled behavior
+		if(isset($do['behavior']))
+			C4_AbstractView::_doBulkScheduleBehavior(CerberusContexts::CONTEXT_SERVER, $do['behavior'], $ids);
+		
+		// Watchers
+		if(isset($do['watchers']))
+			C4_AbstractView::_doBulkChangeWatchers(CerberusContexts::CONTEXT_SERVER, $do['watchers'], $ids);
+		
+		$update->markCompleted();
+		return true;
+	}
+	
 	static function getAll($nocache=false) {
 		$cache = DevblocksPlatform::getCacheService();
 		if($nocache || null === ($servers = $cache->load(self::CACHE_ALL))) {
@@ -1228,85 +1276,5 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 			$this->addParam($criteria, $field);
 			$this->renderPage = 0;
 		}
-	}
-		
-	function doBulkUpdate($filter, $do, $ids=array()) {
-		@set_time_limit(600); // 10m
-		
-		$change_fields = array();
-		$custom_fields = array();
-
-		// Make sure we have actions
-		if(empty($do))
-			return;
-
-		// Make sure we have checked items if we want a checked list
-		if(0 == strcasecmp($filter,"checks") && empty($ids))
-			return;
-			
-		if(is_array($do))
-		foreach($do as $k => $v) {
-			switch($k) {
-				// [TODO] Implement actions
-				case 'example':
-					//$change_fields[DAO_Server::EXAMPLE] = 'some value';
-					break;
-				default:
-					// Custom fields
-					if(substr($k,0,3)=="cf_") {
-						$custom_fields[substr($k,3)] = $v;
-					}
-					break;
-			}
-		}
-
-		$pg = 0;
-
-		if(empty($ids))
-		do {
-			list($objects,$null) = DAO_Server::search(
-				array(),
-				$this->getParams(),
-				100,
-				$pg++,
-				SearchFields_Server::ID,
-				true,
-				false
-			);
-			$ids = array_merge($ids, array_keys($objects));
-			 
-		} while(!empty($objects));
-
-		$batch_total = count($ids);
-		for($x=0;$x<=$batch_total;$x+=100) {
-			$batch_ids = array_slice($ids,$x,100);
-			
-			DAO_Server::update($batch_ids, $change_fields);
-
-			// Custom Fields
-			self::_doBulkSetCustomFields(CerberusContexts::CONTEXT_SERVER, $custom_fields, $batch_ids);
-			
-			// Scheduled behavior
-			if(isset($do['behavior']) && is_array($do['behavior'])) {
-				$behavior_id = $do['behavior']['id'];
-				@$behavior_when = strtotime($do['behavior']['when']) or time();
-				@$behavior_params = isset($do['behavior']['params']) ? $do['behavior']['params'] : array();
-				
-				if(!empty($batch_ids) && !empty($behavior_id))
-				foreach($batch_ids as $batch_id) {
-					DAO_ContextScheduledBehavior::create(array(
-						DAO_ContextScheduledBehavior::BEHAVIOR_ID => $behavior_id,
-						DAO_ContextScheduledBehavior::CONTEXT => CerberusContexts::CONTEXT_SERVER,
-						DAO_ContextScheduledBehavior::CONTEXT_ID => $batch_id,
-						DAO_ContextScheduledBehavior::RUN_DATE => $behavior_when,
-						DAO_ContextScheduledBehavior::VARIABLES_JSON => json_encode($behavior_params),
-					));
-				}
-			}
-			
-			unset($batch_ids);
-		}
-
-		unset($ids);
 	}
 };

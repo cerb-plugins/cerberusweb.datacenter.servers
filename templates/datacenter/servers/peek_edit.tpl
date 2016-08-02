@@ -1,7 +1,9 @@
 {$form_id = "frmServer{uniqid()}"}
 <form action="{devblocks_url}{/devblocks_url}" method="post" id="{$form_id}">
-<input type="hidden" name="c" value="datacenter">
-<input type="hidden" name="a" value="savePeekJson">
+<input type="hidden" name="c" value="profiles">
+<input type="hidden" name="a" value="handleSectionAction">
+<input type="hidden" name="section" value="server">
+<input type="hidden" name="action" value="savePeekJson">
 <input type="hidden" name="view_id" value="{$view_id}">
 {if !empty($model) && !empty($model->id)}<input type="hidden" name="id" value="{$model->id}">{/if}
 {if !empty($link_context)}
