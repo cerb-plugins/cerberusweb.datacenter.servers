@@ -243,6 +243,8 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 	}
 	
 	function startBulkUpdateJsonAction() {
+		$active_worker = CerberusApplication::getActiveWorker();
+		
 		// Filter: whole list or check
 		@$filter = DevblocksPlatform::importGPC($_REQUEST['filter'],'string','');
 		$ids = array();
@@ -258,6 +260,19 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		@$behavior_params = DevblocksPlatform::importGPC($_POST['behavior_params'],'array',array());
 		
 		$do = array();
+		
+		$status = DevblocksPlatform::importGPC($_POST['status'],'string','');
+		
+		// Delete
+		if(strlen($status) > 0) {
+			switch($status) {
+				case 'deleted':
+					if($active_worker->is_superuser) {
+						$do['delete'] = true;
+					}
+					break;
+			}
+		}
 		
 		// Do: Custom fields
 		$do = DAO_CustomFieldValue::handleBulkPost($do);

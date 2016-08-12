@@ -17,6 +17,27 @@
 	{/if}
 </fieldset>
 
+{if $active_worker->is_superuser}
+<fieldset class="peek">
+	<legend>Set Fields</legend>
+	<table cellspacing="0" cellpadding="2" width="100%">
+		<tr>
+			<td width="0%" nowrap="nowrap" valign="top" align="right">{'common.status'|devblocks_translate|capitalize}:</td>
+			<td width="100%"><select name="status">
+				<option value=""></option>
+				{if $active_worker->is_superuser}
+				<option value="deleted">{'status.deleted'|devblocks_translate|capitalize}</option>
+				{/if}
+			</select>
+			{if $active_worker->is_superuser}
+			<button type="button" onclick="this.form.status.selectedIndex = 1;">{'status.deleted'|devblocks_translate|lower}</button>
+			{/if}
+			</td>
+		</tr>
+	</table>
+</fieldset>
+{/if}
+
 {if !empty($custom_fields)}
 <fieldset class="peek">
 	<legend>Set Custom Fields</legend>

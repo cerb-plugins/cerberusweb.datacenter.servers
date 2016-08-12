@@ -460,10 +460,15 @@ class DAO_Server extends Cerb_ORMHelper {
 		
 		$change_fields = array();
 		$custom_fields = array();
+		$deleted = false;
 
 		if(is_array($do))
 		foreach($do as $k => $v) {
 			switch($k) {
+				case 'delete':
+					$deleted = true;
+					break;
+				
 				default:
 					// Custom fields
 					if(substr($k,0,3)=="cf_") {
@@ -472,21 +477,26 @@ class DAO_Server extends Cerb_ORMHelper {
 					break;
 			}
 		}
-		
-		if(!empty($change_fields))
-			DAO_Server::update($ids, $change_fields);
 
-		// Custom Fields
-		if(!empty($custom_fields))
-			C4_AbstractView::_doBulkSetCustomFields(CerberusContexts::CONTEXT_SERVER, $custom_fields, $ids);
-		
-		// Scheduled behavior
-		if(isset($do['behavior']))
-			C4_AbstractView::_doBulkScheduleBehavior(CerberusContexts::CONTEXT_SERVER, $do['behavior'], $ids);
-		
-		// Watchers
-		if(isset($do['watchers']))
-			C4_AbstractView::_doBulkChangeWatchers(CerberusContexts::CONTEXT_SERVER, $do['watchers'], $ids);
+		if($deleted) {
+			DAO_Server::delete($ids);
+			
+		} else {
+			if(!empty($change_fields))
+				DAO_Server::update($ids, $change_fields);
+	
+			// Custom Fields
+			if(!empty($custom_fields))
+				C4_AbstractView::_doBulkSetCustomFields(CerberusContexts::CONTEXT_SERVER, $custom_fields, $ids);
+			
+			// Scheduled behavior
+			if(isset($do['behavior']))
+				C4_AbstractView::_doBulkScheduleBehavior(CerberusContexts::CONTEXT_SERVER, $do['behavior'], $ids);
+			
+			// Watchers
+			if(isset($do['watchers']))
+				C4_AbstractView::_doBulkChangeWatchers(CerberusContexts::CONTEXT_SERVER, $do['watchers'], $ids);
+		}
 		
 		$update->markCompleted();
 		return true;
