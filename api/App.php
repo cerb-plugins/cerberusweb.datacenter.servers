@@ -190,8 +190,8 @@ class VaAction_CreateServer extends Extension_DevblocksEventAction {
 		// Comment content
 		if(!empty($comment)) {
 			$fields = array(
-				DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_VIRTUAL_ATTENDANT,
-				DAO_Comment::OWNER_CONTEXT_ID => $trigger->virtual_attendant_id,
+				DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_BOT,
+				DAO_Comment::OWNER_CONTEXT_ID => $trigger->bot_id,
 				DAO_Comment::COMMENT => $comment,
 				DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_SERVER,
 				DAO_Comment::CONTEXT_ID => $server_id,
