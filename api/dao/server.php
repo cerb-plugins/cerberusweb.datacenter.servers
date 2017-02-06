@@ -752,11 +752,11 @@ class DAO_Server extends Cerb_ORMHelper {
 		
 		switch($as) {
 			case 'ids':
-				return array_keys($results);
+				return $ids;
 				break;
 				
 			default:
-				return DAO_Server::getIds(array_keys($results));
+				return DAO_Server::getIds($ids);
 				break;
 		}
 	}
