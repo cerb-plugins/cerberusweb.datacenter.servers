@@ -22,4 +22,10 @@ class Event_ServerMacro extends AbstractEvent_Server {
 			)
 		);
 	}
+	
+	function renderEventParams(Model_TriggerEvent $trigger=null) {
+		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl->assign('trigger', $trigger);
+		$tpl->display('devblocks:cerberusweb.core::events/record/params_macro_default.tpl');
+	}
 };
