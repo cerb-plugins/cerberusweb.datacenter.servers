@@ -252,6 +252,9 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 	function renderPeekPopup($context_id=0, $view_id='', $edit=false) {
 		$id = $context_id;
 		
+		$active_worker = CerberusApplication::getActiveWorker();
+		$context = CerberusContexts::CONTEXT_SERVER;
+		
 		$tpl = DevblocksPlatform::getTemplateService();
 		$tpl->assign('view_id', $view_id);
 		
@@ -278,6 +281,13 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek_edit.tpl');
 			
 		} else {
+			// Dictionary
+			$labels = array();
+			$values = array();
+			CerberusContexts::getContext(CerberusContexts::CONTEXT_SERVER, $model, $labels, $values, '', true, false);
+			$dict = DevblocksDictionaryDelegate::instance($values);
+			$tpl->assign('dict', $dict);
+			
 			// Counts
 			$activity_counts = array(
 				'comments' => DAO_Comment::count(CerberusContexts::CONTEXT_SERVER, $context_id),
@@ -308,15 +318,13 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			if(false == ($context_ext = Extension_DevblocksContext::get(CerberusContexts::CONTEXT_SERVER)))
 				return;
 			
-			// Dictionary
-			$labels = array();
-			$values = array();
-			CerberusContexts::getContext(CerberusContexts::CONTEXT_SERVER, $model, $labels, $values, '', true, false);
-			$dict = DevblocksDictionaryDelegate::instance($values);
-			$tpl->assign('dict', $dict);
-			
 			$properties = $context_ext->getCardProperties();
 			$tpl->assign('properties', $properties);
+			
+			// Interactions
+			$interactions = Event_GetInteractionsForWorker::getInteractionsByPointAndWorker('record:' . $context, $dict, $active_worker);
+			$interactions_menu = Event_GetInteractionsForWorker::getInteractionMenu($interactions);
+			$tpl->assign('interactions_menu', $interactions_menu);
 			
 			$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/peek.tpl');
 		}

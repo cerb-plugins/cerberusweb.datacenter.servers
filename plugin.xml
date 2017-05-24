@@ -11,13 +11,13 @@
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="7.4" max="7.4.99" />
+		<app_version min="8.0" max="8.0.99" />
 	</requires>
  
 	<!-- Plugin Dependencies -->
 	
 	<dependencies>
-		<require plugin_id="cerberusweb.core" version="7.4.0" />
+		<require plugin_id="cerberusweb.core" version="8.0.0" />
 	</dependencies>
 
 	<!-- Patches -->
@@ -106,7 +106,7 @@
 
 		<extension point="devblocks.event">
 			<id>event.macro.server</id>
-			<name>Custom server behavior</name>
+			<name>Custom behavior on server</name>
 			<class>
 				<file>api/events/server_macro.php</file>
 				<name>Event_ServerMacro</name>
@@ -119,6 +119,11 @@
 						<data key="cerberusweb.contexts.group" />
 						<data key="cerberusweb.contexts.role" />
 						<data key="cerberusweb.contexts.worker" />
+					</value>
+				</param>
+				<param key="options">
+					<value>
+						<data key="visibility" />
 					</value>
 				</param>
 			</params>

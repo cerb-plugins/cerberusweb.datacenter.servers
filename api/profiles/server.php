@@ -21,6 +21,7 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		$request = DevblocksPlatform::getHttpRequest();
 		$translate = DevblocksPlatform::getTranslationService();
 		
+		$context = CerberusContexts::CONTEXT_SERVER;
 		$active_worker = CerberusApplication::getActiveWorker();
 		
 		$stack = $request->path;
@@ -28,8 +29,17 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		@array_shift($stack); // server
 		@$id = intval(array_shift($stack));
 		
-		if(null != ($server = DAO_Server::get($id)))
-			$tpl->assign('server', $server);
+		if(null == ($server = DAO_Server::get($id)))
+			return;
+		
+		$tpl->assign('server', $server);
+		
+		// Dictionary
+		$labels = array();
+		$values = array();
+		CerberusContexts::getContext($context, $server, $labels, $values, '', true, false);
+		$dict = DevblocksDictionaryDelegate::instance($values);
+		$tpl->assign('dict', $dict);
 
 		// Remember the last tab/URL
 		
@@ -89,6 +99,11 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		// Tabs
 		$tab_manifests = Extension_ContextProfileTab::getExtensions(false, CerberusContexts::CONTEXT_SERVER);
 		$tpl->assign('tab_manifests', $tab_manifests);
+		
+		// Interactions
+		$interactions = Event_GetInteractionsForWorker::getInteractionsByPointAndWorker('record:' . $context, $dict, $active_worker);
+		$interactions_menu = Event_GetInteractionsForWorker::getInteractionMenu($interactions);
+		$tpl->assign('interactions_menu', $interactions_menu);
 		
 		// Template
 		$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/profile.tpl');
@@ -215,14 +230,6 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		// Custom Fields
 		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_SERVER, false);
 		$tpl->assign('custom_fields', $custom_fields);
-		
-		// Macros
-		
-		$macros = DAO_TriggerEvent::getUsableMacrosByWorker(
-			$active_worker,
-			'event.macro.server'
-		);
-		$tpl->assign('macros', $macros);
 		
 		$tpl->display('devblocks:cerberusweb.datacenter.servers::datacenter/servers/bulk.tpl');
 	}
