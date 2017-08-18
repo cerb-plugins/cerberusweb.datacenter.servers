@@ -18,7 +18,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		if(empty($context_id))
 			return '';
 	
-		$url_writer = DevblocksPlatform::getUrlService();
+		$url_writer = DevblocksPlatform::services()->url();
 		$url = $url_writer->writeNoProxy('c=profiles&type=server&id='.$context_id, true);
 		return $url;
 	}
@@ -160,11 +160,20 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 			$token_values = $this->_importModelCustomFieldsAsValues($server, $token_values);
 			
 			// URL
-			$url_writer = DevblocksPlatform::getUrlService();
+			$url_writer = DevblocksPlatform::services()->url();
 			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=datacenter&tab=server&id=%d-%s",$server->id, DevblocksPlatform::strToPermalink($server->name)), true);
 		}
 		
 		return true;
+	}
+	
+	function getKeyToDaoFieldMap() {
+		return [
+			'created' => DAO_Server::CREATED,
+			'id' => DAO_Server::ID,
+			'name' => DAO_Server::NAME,
+			'updated' => DAO_Server::UPDATED,
+		];
 	}
 
 	function lazyLoadContextValues($token, $dictionary) {
@@ -255,7 +264,7 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 		$active_worker = CerberusApplication::getActiveWorker();
 		$context = CerberusContexts::CONTEXT_SERVER;
 		
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('view_id', $view_id);
 		
 		// Model
@@ -392,15 +401,47 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 };
 
 class DAO_Server extends Cerb_ORMHelper {
-	const CACHE_ALL = 'cerberus_cache_servers_all';
-	
 	const CREATED = 'created';
 	const ID = 'id';
 	const NAME = 'name';
 	const UPDATED = 'updated';
+	
+	const CACHE_ALL = 'cerberus_cache_servers_all';
+	
+	private function __construct() {}
+
+	static function getFields() {
+		$validation = DevblocksPlatform::services()->validation();
+		
+		// int(10) unsigned
+		$validation
+			->addField(self::CREATED)
+			->timestamp()
+			;
+		// int(10) unsigned
+		$validation
+			->addField(self::ID)
+			->id()
+			->setEditable(false)
+			;
+		// varchar(255)
+		$validation
+			->addField(self::NAME)
+			->string()
+			->setMaxLength(255)
+			->setRequired(true)
+			;
+		// int(10) unsigned
+		$validation
+			->addField(self::UPDATED)
+			->timestamp()
+			;
+
+		return $validation->getFields();
+	}
 
 	static function create($fields) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		$sql = "INSERT INTO server () VALUES ()";
 		$db->ExecuteMaster($sql);
@@ -440,7 +481,7 @@ class DAO_Server extends Cerb_ORMHelper {
 			if($check_deltas) {
 				
 				// Trigger an event about the changes
-				$eventMgr = DevblocksPlatform::getEventService();
+				$eventMgr = DevblocksPlatform::services()->event();
 				$eventMgr->trigger(
 					new Model_DevblocksEvent(
 						'dao.server.update',
@@ -525,7 +566,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	}
 	
 	static function getAll($nocache=false) {
-		$cache = DevblocksPlatform::getCacheService();
+		$cache = DevblocksPlatform::services()->cache();
 		if($nocache || null === ($servers = $cache->load(self::CACHE_ALL))) {
 			$servers = self::getWhere(
 				null,
@@ -552,7 +593,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	 * @return Model_Server[]
 	 */
 	static function getWhere($where=null, $sortBy=DAO_Server::NAME, $sortAsc=true, $limit=null, $options=null) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 
 		list($where_sql, $sort_sql, $limit_sql) = self::_getWhereSQL($where, $sortBy, $sortAsc, $limit);
 		
@@ -632,7 +673,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	
 	static function delete($ids) {
 		if(!is_array($ids)) $ids = array($ids);
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		if(empty($ids))
 			return;
@@ -642,7 +683,7 @@ class DAO_Server extends Cerb_ORMHelper {
 		$db->ExecuteMaster(sprintf("DELETE FROM server WHERE id IN (%s)", $ids_list));
 		
 		// Fire event
-		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr = DevblocksPlatform::services()->event();
 		$eventMgr->trigger(
 			new Model_DevblocksEvent(
 				'context.delete',
@@ -660,7 +701,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	
 	public static function maint() {
 		// Fire event
-		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr = DevblocksPlatform::services()->event();
 		$eventMgr->trigger(
 			new Model_DevblocksEvent(
 				'context.maint',
@@ -743,7 +784,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	}
 	
 	static function autocomplete($term, $as='models') {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		$ids = array();
 		
 		$results = $db->GetArraySlave(sprintf("SELECT id ".
@@ -782,7 +823,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	 * @return array
 	 */
 	static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 	
 		// Build search queries
 		$query_parts = self::getSearchQueryComponents($columns,$params,$sortBy,$sortAsc);
@@ -837,7 +878,7 @@ class DAO_Server extends Cerb_ORMHelper {
 	}
 
 	static public function clearCache() {
-		$cache = DevblocksPlatform::getCacheService();
+		$cache = DevblocksPlatform::services()->cache();
 		$cache->remove(self::CACHE_ALL);
 	}
 };
@@ -1157,7 +1198,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 	function render() {
 		$this->_sanitize();
 		
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('id', $this->id);
 		$tpl->assign('view', $this);
 
@@ -1175,7 +1216,7 @@ class View_Server extends C4_AbstractView implements IAbstractView_Subtotals, IA
 	}
 
 	function renderCriteria($field) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('id', $this->id);
 
 		switch($field) {

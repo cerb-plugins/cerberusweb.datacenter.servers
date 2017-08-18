@@ -14,7 +14,7 @@ class Page_Datacenter extends CerberusPageExtension {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
 		
 		$active_worker = CerberusApplication::getActiveWorker();
-		$url_writer = DevblocksPlatform::getUrlService();
+		$url_writer = DevblocksPlatform::services()->url();
 		
 		// Generate hash
 		$hash = md5($view_id.$active_worker->id.time());
@@ -85,7 +85,7 @@ class Page_Datacenter extends CerberusPageExtension {
 if(class_exists('Extension_DevblocksEventAction')):
 class VaAction_CreateServer extends Extension_DevblocksEventAction {
 	function render(Extension_DevblocksEvent $event, Model_TriggerEvent $trigger, $params=array(), $seq=null) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('params', $params);
 		
 		if(!is_null($seq))
@@ -103,7 +103,7 @@ class VaAction_CreateServer extends Extension_DevblocksEventAction {
 	}
 	
 	function simulate($token, Model_TriggerEvent $trigger, $params, DevblocksDictionaryDelegate $dict) {
-		$tpl_builder = DevblocksPlatform::getTemplateBuilder();
+		$tpl_builder = DevblocksPlatform::services()->templateBuilder();
 
 		$out = null;
 		
@@ -160,7 +160,7 @@ class VaAction_CreateServer extends Extension_DevblocksEventAction {
 	}
 	
 	function run($token, Model_TriggerEvent $trigger, $params, DevblocksDictionaryDelegate $dict) {
-		$tpl_builder = DevblocksPlatform::getTemplateBuilder();
+		$tpl_builder = DevblocksPlatform::services()->templateBuilder();
 		
 		@$name = $tpl_builder->build($params['name'], $dict);
 

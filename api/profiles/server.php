@@ -17,7 +17,7 @@
 
 class PageSection_ProfilesServer extends Extension_PageSection {
 	function render() {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$request = DevblocksPlatform::getHttpRequest();
 		$translate = DevblocksPlatform::getTranslationService();
 		
@@ -215,7 +215,7 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 
 		$active_worker = CerberusApplication::getActiveWorker();
 		
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('view_id', $view_id);
 
 		if(!empty($ids)) {
