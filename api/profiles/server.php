@@ -120,8 +120,8 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 		
 		try {
 			if($do_delete) { // delete
-				if(!$active_worker->is_superuser)
-					throw new Exception_DevblocksAjaxValidationError("You don't have permission to delete this record.");
+				if(!$active_worker->hasPriv(sprintf("contexts.%s.delete", CerberusContexts::CONTEXT_SERVER)))
+					throw new Exception_DevblocksAjaxValidationError(DevblocksPlatform::translate('error.core.no_acl.delete'));
 				
 				DAO_Server::delete($id);
 				
@@ -136,18 +136,17 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 				@$name = DevblocksPlatform::importGPC($_REQUEST['name'],'string','');
 				@$comment = DevblocksPlatform::importGPC($_REQUEST['comment'], 'string', '');
 				
-				if(empty($name))
-					throw new Exception_DevblocksAjaxValidationError("A 'Name' is required.", 'name');
-				
 				$fields = array(
 					DAO_Server::NAME => $name,
 				);
 				
 				// Create/Update
 				if(empty($id)) {
-					// Check for dupes
-					if(false != DAO_Server::getByName($name))
-						throw new Exception_DevblocksAjaxValidationError(sprintf("A server record already exists with the name '%s'.", $name), 'name');
+					if(!$active_worker->hasPriv(sprintf("contexts.%s.create", CerberusContexts::CONTEXT_SERVER)))
+						throw new Exception_DevblocksAjaxValidationError(DevblocksPlatform::translate('error.core.no_acl.create'));
+					
+					if(!DAO_Server::validate($fields, $error))
+						throw new Exception_DevblocksAjaxValidationError($error);
 					
 					if(false == ($id = DAO_Server::create($fields)))
 						throw new Exception_DevblocksAjaxValidationError("There was an error creating the record.");
@@ -158,13 +157,19 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 					}
 					
 				} else {
+					if(!$active_worker->hasPriv(sprintf("contexts.%s.update", CerberusContexts::CONTEXT_SERVER)))
+						throw new Exception_DevblocksAjaxValidationError(DevblocksPlatform::translate('error.core.no_acl.edit'));
+					
+					if(!DAO_Server::validate($fields, $error, $id))
+						throw new Exception_DevblocksAjaxValidationError($error);
+					
 					DAO_Server::update($id, $fields);
 				}
 				
 				// If we're adding a comment
-				if(!empty($comment)) {
+				if(!empty($comment) && $active_worker->hasPriv(sprintf("contexts.%s.comment", CerberusContexts::CONTEXT_SERVER))) {
 					$also_notify_worker_ids = array_keys(CerberusApplication::getWorkersByAtMentionsText($comment));
-									
+					
 					$fields = array(
 						DAO_Comment::CREATED => time(),
 						DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_SERVER,

@@ -82,7 +82,6 @@ class Page_Datacenter extends CerberusPageExtension {
 	}
 };
 
-if(class_exists('Extension_DevblocksEventAction')):
 class VaAction_CreateServer extends Extension_DevblocksEventAction {
 	function render(Extension_DevblocksEvent $event, Model_TriggerEvent $trigger, $params=array(), $seq=null) {
 		$tpl = DevblocksPlatform::services()->template();
@@ -205,9 +204,7 @@ class VaAction_CreateServer extends Extension_DevblocksEventAction {
 	}
 	
 };
-endif;
 
-if (class_exists('DevblocksEventListenerExtension')):
 class EventListener_Datacenter extends DevblocksEventListenerExtension {
 	/**
 	 * @param Model_DevblocksEvent $event
@@ -220,4 +217,3 @@ class EventListener_Datacenter extends DevblocksEventListenerExtension {
 		}
 	}
 };
-endif;
