@@ -142,14 +142,16 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 				
 				// Create/Update
 				if(empty($id)) {
-					if(!$active_worker->hasPriv(sprintf("contexts.%s.create", CerberusContexts::CONTEXT_SERVER)))
-						throw new Exception_DevblocksAjaxValidationError(DevblocksPlatform::translate('error.core.no_acl.create'));
-					
 					if(!DAO_Server::validate($fields, $error))
+						throw new Exception_DevblocksAjaxValidationError($error);
+					
+					if(!DAO_Server::onBeforeUpdateByActor($active_worker, $fields, null, $error))
 						throw new Exception_DevblocksAjaxValidationError($error);
 					
 					if(false == ($id = DAO_Server::create($fields)))
 						throw new Exception_DevblocksAjaxValidationError("There was an error creating the record.");
+					
+					DAO_Server::onUpdateByActor($active_worker, $fields, $id);
 					
 					// View marquee
 					if(!empty($id) && !empty($view_id)) {
@@ -157,13 +159,14 @@ class PageSection_ProfilesServer extends Extension_PageSection {
 					}
 					
 				} else {
-					if(!$active_worker->hasPriv(sprintf("contexts.%s.update", CerberusContexts::CONTEXT_SERVER)))
-						throw new Exception_DevblocksAjaxValidationError(DevblocksPlatform::translate('error.core.no_acl.edit'));
-					
 					if(!DAO_Server::validate($fields, $error, $id))
 						throw new Exception_DevblocksAjaxValidationError($error);
 					
+					if(!DAO_Server::onBeforeUpdateByActor($active_worker, $fields, $id, $error))
+						throw new Exception_DevblocksAjaxValidationError($error);
+					
 					DAO_Server::update($id, $fields);
+					DAO_Server::onUpdateByActor($active_worker, $fields, $id);
 				}
 				
 				// If we're adding a comment
