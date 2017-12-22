@@ -46,9 +46,3 @@
 	</select>
 </div>
 {/if}
-
-{*
-<script type="text/javascript">
-var $action = $('fieldset#{$namePrefix}');
-</script>
-*}
