@@ -45,11 +45,7 @@
 	
 	<div style="clear:both;"></div>
 
-	<div style="margin-top:5px;">
-		<button type="button" class="cerb-search-trigger" data-context="{CerberusContexts::CONTEXT_DOMAIN}" data-query="server:&quot;{$dict->name|lower}&quot;"><div class="badge-count">{$activity_counts.domains|default:0}</div> {'cerberusweb.datacenter.domains'|devblocks_translate|capitalize}</button>
-		{*<button type="button"><div class="badge-count">{$activity_counts.comments|default:0}</div> {'common.comments'|devblocks_translate|capitalize}</button>*}
-	</div>
-	
+	{include file="devblocks:cerberusweb.core::internal/peek/peek_search_buttons.tpl"}
 </fieldset>
 
 {include file="devblocks:cerberusweb.core::internal/profiles/profile_record_links.tpl" properties_links=$links peek=true page_context=$peek_context page_context_id=$dict->id}
@@ -103,7 +99,7 @@ $(function() {
 		// View profile
 		$popup.find('.cerb-peek-profile').click(function(e) {
 			if(e.shiftKey || e.metaKey) {
-				window.open('{devblocks_url}c=profiles&type=server&id={$dict->id}-{$dict->_label|devblocks_permalink}{/devblocks_url}', '_blank');
+				window.open('{devblocks_url}c=profiles&type=server&id={$dict->id}-{$dict->_label|devblocks_permalink}{/devblocks_url}', '_blank', 'noopener');
 				
 			} else {
 				document.location='{devblocks_url}c=profiles&type=server&id={$dict->id}-{$dict->_label|devblocks_permalink}{/devblocks_url}';
