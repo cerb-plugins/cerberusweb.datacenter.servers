@@ -4,7 +4,7 @@
 	<name>Servers</name>
 	<description>This plugin adds Server objects that can be used to manage datacenter assets.</description>
 	<author>Webgroup Media, LLC.</author>
-	<version>1.7.0</version>
+	<version>1.7.1</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.datacenter.servers.html</link>
 	<image>plugin.png</image>
 
@@ -25,6 +25,7 @@
 	<patches>
 		<patch version="5.1.0" revision="1" file="patches/5.1.0.php" />
 		<patch version="6.9.0" revision="2" file="patches/6.9.0.php" />
+		<patch version="9.0.0" revision="3" file="patches/9.0.0.php" />
 	</patches>
 	
 	<!-- Exported Classes -->
