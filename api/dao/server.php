@@ -218,9 +218,6 @@ class Context_Server extends Extension_DevblocksContext implements IDevblocksCon
 	
 	function getDaoFieldsFromKeyAndValue($key, $value, &$out_fields, &$error) {
 		switch(DevblocksPlatform::strLower($key)) {
-			case 'links':
-				$this->_getDaoFieldsLinks($value, $out_fields, $error);
-				break;
 		}
 		
 		return true;
@@ -486,6 +483,11 @@ class DAO_Server extends Cerb_ORMHelper {
 		$validation
 			->addField(self::UPDATED)
 			->timestamp()
+			;
+		$validation
+			->addField('_fieldsets')
+			->string()
+			->setMaxLength(65535)
 			;
 		$validation
 			->addField('_links')
